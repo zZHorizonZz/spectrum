@@ -1,0 +1,581 @@
+{
+  "schemaVersion" : "1",
+  "storage" : {
+    "namespaces" : [ {
+      "tables" : [ {
+        "id" : "spectrum.Store",
+        "name" : "store",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "id",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The store ID, a ULID."
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "name",
+          "type" : {
+            "kind" : "text",
+            "length" : 64
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "created_at",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "updated_at",
+          "type" : {
+            "kind" : "timestamp"
+          }
+        }, {
+          "id" : "5",
+          "name" : "deleted_at",
+          "type" : {
+            "kind" : "timestamp"
+          }
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_store",
+          "columns" : [ "id" ]
+        }, {
+          "kind" : "comment",
+          "text" : "A store. Deleting a store sets `deleted_at` and keeps its rows, as OpenFGA does."
+        } ]
+      }, {
+        "id" : "spectrum.AuthorizationModel",
+        "name" : "authorization_model",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "store",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "authorization_model_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The model ID, a ULID. The latest model of a store has the greatest ID."
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "schema_version",
+          "type" : {
+            "kind" : "text",
+            "length" : 5
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "serialized_protobuf",
+          "type" : {
+            "kind" : "bytes"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The model, as a serialized `openfga.v1.AuthorizationModel`."
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_authorization_model",
+          "columns" : [ "store", "authorization_model_id" ]
+        }, {
+          "kind" : "comment",
+          "text" : "An authorization model of a store. Models never change after they are written."
+        } ]
+      }, {
+        "id" : "spectrum.Tuple",
+        "name" : "tuple",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "store",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "object_type",
+          "type" : {
+            "kind" : "text",
+            "length" : 128
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "object_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "relation",
+          "type" : {
+            "kind" : "text",
+            "length" : 50
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "5",
+          "name" : "_user",
+          "type" : {
+            "kind" : "text",
+            "length" : 256
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The user: an object such as `user:anne`, a typed wildcard such as `user:*`, or a userset such as\n`group:eng#member`."
+          } ]
+        }, {
+          "id" : "6",
+          "name" : "user_type",
+          "type" : {
+            "kind" : "text",
+            "length" : 7
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "`user` for an object, or `userset` for a typed wildcard or a userset."
+          } ]
+        }, {
+          "id" : "7",
+          "name" : "condition_name",
+          "type" : {
+            "kind" : "text",
+            "length" : 256
+          }
+        }, {
+          "id" : "8",
+          "name" : "condition_context",
+          "type" : {
+            "kind" : "bytes"
+          },
+          "attributes" : [ {
+            "kind" : "comment",
+            "text" : "The condition context, as a serialized `google.protobuf.Struct`."
+          } ]
+        }, {
+          "id" : "9",
+          "name" : "ulid",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The tuple ID, a ULID of the time of the write."
+          } ]
+        }, {
+          "id" : "10",
+          "name" : "inserted_at",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_tuple",
+          "columns" : [ "store", "object_type", "object_id", "relation", "_user" ]
+        }, {
+          "kind" : "index",
+          "name" : "ux_tuple_ulid",
+          "columns" : [ "ulid" ],
+          "unique" : true
+        }, {
+          "kind" : "index",
+          "name" : "ix_tuple_user_lookup",
+          "columns" : [ "store", "_user", "relation", "object_type", "object_id" ],
+          "unique" : false
+        }, {
+          "kind" : "comment",
+          "text" : "A relationship tuple of a store."
+        } ]
+      }, {
+        "id" : "spectrum.Changelog",
+        "name" : "changelog",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "store",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "ulid",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The change ID, a ULID of the time of the change. Changes are in order of ID."
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "object_type",
+          "type" : {
+            "kind" : "text",
+            "length" : 256
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "object_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 256
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "5",
+          "name" : "relation",
+          "type" : {
+            "kind" : "text",
+            "length" : 50
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "6",
+          "name" : "_user",
+          "type" : {
+            "kind" : "text",
+            "length" : 512
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          } ]
+        }, {
+          "id" : "7",
+          "name" : "condition_name",
+          "type" : {
+            "kind" : "text",
+            "length" : 256
+          }
+        }, {
+          "id" : "8",
+          "name" : "condition_context",
+          "type" : {
+            "kind" : "bytes"
+          },
+          "attributes" : [ {
+            "kind" : "comment",
+            "text" : "The condition context, as a serialized `google.protobuf.Struct`."
+          } ]
+        }, {
+          "id" : "9",
+          "name" : "operation",
+          "type" : {
+            "kind" : "integer",
+            "size" : "INT32"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The `openfga.v1.TupleOperation` number: 0 for a write, 1 for a delete."
+          } ]
+        }, {
+          "id" : "10",
+          "name" : "inserted_at",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_changelog",
+          "columns" : [ "store", "ulid", "object_type" ]
+        }, {
+          "kind" : "comment",
+          "text" : "A write or a delete of a tuple of a store, in the transaction of the change."
+        } ]
+      }, {
+        "id" : "spectrum.Assertion",
+        "name" : "assertion",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "store",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "authorization_model_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 26
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "assertions",
+          "type" : {
+            "kind" : "bytes"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The assertions, as a serialized `openfga.v1.Assertions` message."
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_assertion",
+          "columns" : [ "store", "authorization_model_id" ]
+        }, {
+          "kind" : "comment",
+          "text" : "The assertions of an authorization model."
+        } ]
+      } ]
+    } ]
+  },
+  "storageHash" : "fbdfad85ebaa7fa6"
+}

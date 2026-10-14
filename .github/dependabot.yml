@@ -1,0 +1,20 @@
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      testing:
+        patterns: [ 'org.junit*:*', 'org.assertj:*', 'org.testcontainers:*', 'com.fasterxml.jackson*:*' ]
+      jdbc-drivers:
+        patterns: [ 'org.postgresql:*', 'org.mariadb.jdbc:*', 'com.microsoft.sqlserver:*', 'org.xerial:*' ]
+      build-plugins:
+        patterns: [ 'org.apache.maven.plugins:*', 'com.diffplug.spotless:*' ]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

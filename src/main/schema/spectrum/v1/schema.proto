@@ -1,0 +1,252 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "leadseal/v1/options.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "SchemaProto";
+option java_package = "dev.horizon.spectrum.schema.v1";
+
+// A store. Deleting a store sets `deleted_at` and keeps its rows, as OpenFGA does.
+message Store {
+  option (leadseal.v1.table) = {};
+
+  // The store ID, a ULID.
+  string id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string name = 2 [(leadseal.v1.column).text = { length: 64 }];
+
+  google.protobuf.Timestamp created_at = 3 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+
+  google.protobuf.Timestamp updated_at = 4;
+
+  google.protobuf.Timestamp deleted_at = 5;
+}
+
+// An authorization model of a store. Models never change after they are written.
+message AuthorizationModel {
+  option (leadseal.v1.table) = {};
+
+  string store = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The model ID, a ULID. The latest model of a store has the greatest ID.
+  string authorization_model_id = 2 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string schema_version = 3 [(leadseal.v1.column).text = { length: 5 }];
+
+  // The model, as a serialized `openfga.v1.AuthorizationModel`.
+  bytes serialized_protobuf = 4;
+}
+
+// A relationship tuple of a store.
+message Tuple {
+  option (leadseal.v1.table) = {
+    index: { name: "ux_tuple_ulid" fields: ["ulid"] unique: true }
+    index: { name: "ix_tuple_user_lookup" fields: ["store", "user", "relation", "object_type", "object_id"] }
+  };
+
+  string store = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string object_type = 2 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 128
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string object_id = 3 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 255
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string relation = 4 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 50
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The user: an object such as `user:anne`, a typed wildcard such as `user:*`, or a userset such as
+  // `group:eng#member`.
+  string user = 5 [(leadseal.v1.column) = {
+    primary_key: true
+    name: "_user"
+    text: {
+      length: 256
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // `user` for an object, or `userset` for a typed wildcard or a userset.
+  string user_type = 6 [(leadseal.v1.column).text = { length: 7 }];
+
+  optional string condition_name = 7 [(leadseal.v1.column).text = { length: 256 }];
+
+  // The condition context, as a serialized `google.protobuf.Struct`.
+  optional bytes condition_context = 8;
+
+  // The tuple ID, a ULID of the time of the write.
+  string ulid = 9 [(leadseal.v1.column).text = {
+    length: 26
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  google.protobuf.Timestamp inserted_at = 10 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}
+
+// A write or a delete of a tuple of a store, in the transaction of the change.
+message Changelog {
+  option (leadseal.v1.table) = {};
+
+  string store = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The change ID, a ULID of the time of the change. Changes are in order of ID.
+  string ulid = 2 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string object_type = 3 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 256
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string object_id = 4 [(leadseal.v1.column).text = { length: 256 }];
+
+  string relation = 5 [(leadseal.v1.column).text = { length: 50 }];
+
+  string user = 6 [(leadseal.v1.column) = { name: "_user" text: { length: 512 } }];
+
+  optional string condition_name = 7 [(leadseal.v1.column).text = { length: 256 }];
+
+  // The condition context, as a serialized `google.protobuf.Struct`.
+  optional bytes condition_context = 8;
+
+  // The `openfga.v1.TupleOperation` number: 0 for a write, 1 for a delete.
+  int32 operation = 9;
+
+  google.protobuf.Timestamp inserted_at = 10 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}
+
+// The assertions of an authorization model.
+message Assertion {
+  option (leadseal.v1.table) = {};
+
+  string store = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  string authorization_model_id = 2 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 26
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The assertions, as a serialized `openfga.v1.Assertions` message.
+  bytes assertions = 3;
+}
