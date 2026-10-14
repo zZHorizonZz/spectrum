@@ -106,8 +106,9 @@ final class ListSubjects {
         yield Future.succeededFuture();
       }
       case FROM -> reads.subjects(object.object(), rewrite.getFrom().getTupleset()).map(subjects -> {
-        subjects.stream().filter(ref -> !ref.userset() && !ref.wildcard()).forEach(
-            related -> reach(new Ref(related.type(), related.id(), rewrite.getFrom().getRelation()), next));
+        subjects.stream().filter(ref -> !ref.userset() && !ref.wildcard()
+            && model.allows(object.type(), rewrite.getFrom().getTupleset(), ref)).forEach(
+                related -> reach(new Ref(related.type(), related.id(), rewrite.getFrom().getRelation()), next));
         return null;
       });
       case UNION -> visitAll(object, relation, rewrite.getUnion().getRewritesList(), next);

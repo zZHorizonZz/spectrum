@@ -121,7 +121,8 @@ final class Check {
       });
       case COMPUTED -> check(object, rewrite.getComputed().getRelation(), depth + 1, path);
       case FROM -> reads.subjects(object.object(), rewrite.getFrom().getTupleset())
-          .compose(named -> any(named.stream().filter(ref -> !ref.userset() && !ref.wildcard()).toList(),
+          .compose(named -> any(named.stream().filter(ref -> !ref.userset() && !ref.wildcard()
+              && model.allows(object.type(), rewrite.getFrom().getTupleset(), ref)).toList(),
               related -> check(related, rewrite.getFrom().getRelation(), depth + 1, path)));
       case UNION -> any(rewrite.getUnion().getRewritesList(), child -> evaluate(object, relation, child, depth, path));
       case INTERSECTION -> all(rewrite.getIntersection().getRewritesList(),

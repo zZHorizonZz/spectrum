@@ -714,6 +714,49 @@ public abstract class RelationsContractTest {
   }
 
   @Nested
+  @DisplayName("a model that no longer allows relationships")
+  class Narrowed {
+
+    private static final String WIDE = """
+        types { name: "user" }
+        types { name: "folder" relations { name: "viewer" rewrite { direct { subjects: "user" } } } }
+        types {
+          name: "doc"
+          relations { name: "parent" rewrite { direct { subjects: ["folder", "doc"] } } }
+          relations { name: "viewer" rewrite { union {
+            rewrites { direct { subjects: "user" } }
+            rewrites { from { tupleset: "parent" relation: "viewer" } }
+          } } }
+        }
+        """;
+
+    private Relations wide;
+    private Relations narrow;
+
+    @BeforeEach
+    void write() {
+      wide = open(WIDE);
+      narrow = open(WIDE.replace("subjects: [\"folder\", \"doc\"]", "subjects: \"folder\""));
+      wide.write(List.of(relationship("doc:a", "viewer", "user:ana"), relationship("doc:b", "parent", "doc:a"),
+          relationship("folder:f", "viewer", "user:bob"), relationship("doc:b", "parent", "folder:f"))).await();
+    }
+
+    @Test
+    @DisplayName("follows only the relationships of a tupleset that the model still allows")
+    void ignores() {
+      assertAll(
+          () -> assertThat(wide.check("user:ana", "viewer", "doc:b").await()).isTrue(),
+          () -> assertThat(narrow.check("user:ana", "viewer", "doc:b").await()).isFalse(),
+          () -> assertThat(narrow.check("user:bob", "viewer", "doc:b").await()).isTrue(),
+          () -> assertThat(wide.listSubjects("doc:b", "viewer", "user").await().getSubjectsList())
+              .containsExactly("user:ana", "user:bob"),
+          () -> assertThat(narrow.listSubjects("doc:b", "viewer", "user").await().getSubjectsList())
+              .containsExactly("user:bob"),
+          () -> assertThat(narrow.listObjects("user:ana", "viewer", "doc").await()).containsExactly("doc:a"));
+    }
+  }
+
+  @Nested
   @DisplayName("depth")
   class Depth {
 

@@ -102,6 +102,11 @@ public class OpenFgaService extends OpenFGAServiceService {
   /** The most assertions that a model takes, as OpenFGA's limit. */
   static final int MAX_ASSERTIONS = 100;
 
+  private static final System.Logger LOGGER = System.getLogger(OpenFgaService.class.getName());
+
+  /** The message of a failure that Spectrum did not raise on purpose; the log holds its details. */
+  private static final String INTERNAL_ERROR = "an internal error occurred";
+
   private static final int DEFAULT_PAGE_SIZE = 50;
   private static final int MAX_PAGE_SIZE = 100;
 
@@ -480,8 +485,12 @@ public class OpenFgaService extends OpenFGAServiceService {
   private static CheckError error(Throwable failed) {
     return failed instanceof IllegalArgumentException || failed instanceof UnsupportedOperationException
         ? CheckError.newBuilder().setInputError(ErrorCode.validation_error).setMessage(failed.getMessage()).build()
-        : CheckError.newBuilder().setInternalError(InternalErrorCode.internal_error)
-            .setMessage(String.valueOf(failed.getMessage())).build();
+        : internal(failed);
+  }
+
+  private static CheckError internal(Throwable failed) {
+    LOGGER.log(System.Logger.Level.ERROR, "a check of a batch failed", failed);
+    return CheckError.newBuilder().setInternalError(InternalErrorCode.internal_error).setMessage(INTERNAL_ERROR).build();
   }
 
   private static <T> Future<T> unimplemented(String method) {
@@ -504,7 +513,10 @@ public class OpenFgaService extends OpenFGAServiceService {
       case UnsupportedOperationException unsupported -> new StatusException(GrpcStatus.UNIMPLEMENTED,
           unsupported.getMessage());
       case IllegalStateException tooDeep -> new StatusException(GrpcStatus.INVALID_ARGUMENT, tooDeep.getMessage());
-      default -> new StatusException(GrpcStatus.INTERNAL, String.valueOf(failed.getMessage()));
+      default -> {
+        LOGGER.log(System.Logger.Level.ERROR, "an OpenFGA call failed", failed);
+        yield new StatusException(GrpcStatus.INTERNAL, INTERNAL_ERROR);
+      }
     }));
   }
 }
