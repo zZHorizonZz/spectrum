@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "leadseal/v1/options.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "RelationshipProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// A relationship: the subject has the relation to the object in a store, a relation tuple of Zanzibar, as the
+// relationship table keeps it. The migrations of the table are in `spectrum/migration`. A write sets `object`,
+// `relation` and `subject` in the store of the relationships; the database sets `id` and `create_time`.
+message Relationship {
+  option (leadseal.v1.table) = {
+    name: "spectrum_relationship"
+    index: { fields: ["store_id", "object", "relation", "subject"] unique: true }
+    index: { fields: ["store_id", "subject", "relation", "object"] }
+  };
+
+  string id = 1 [(leadseal.v1.column) = { primary_key: true uuid: { default_random: true } }];
+
+  // The store, for example `01JAZ6RE1H6ZQ4WKQ2M0R0S8XQ`.
+  string store_id = 2 [(leadseal.v1.column).text = {
+    length: 32
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The object, as `type:id`, for example `doc:9`.
+  string object = 3 [(leadseal.v1.column).text = {
+    length: 255
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The relation, for example `viewer`.
+  string relation = 4 [(leadseal.v1.column).text = {
+    length: 64
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The subject: an object (`user:ana`), every object of a type (`user:*`), or the subjects of a relation of an object
+  // (`group:eng#member`).
+  string subject = 5 [(leadseal.v1.column).text = {
+    length: 255
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  google.protobuf.Timestamp create_time = 6 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}

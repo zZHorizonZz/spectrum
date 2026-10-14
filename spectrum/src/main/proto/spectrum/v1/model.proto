@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+option java_multiple_files = true;
+option java_outer_classname = "ModelProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// The types of objects and how their relations combine, as Zanzibar's namespace configs and OpenFGA's models say it.
+// A model is checked when a reference is opened with it: each name it uses must be a type or a relation it has.
+//
+//   types { name: "user" }
+//   types {
+//     name: "folder"
+//     relations { name: "parent" rewrite { direct { subjects: "folder" } } }
+//     relations { name: "viewer" rewrite { union {
+//       rewrites { direct { subjects: ["user", "group#member"] } }
+//       rewrites { from { tupleset: "parent" relation: "viewer" } }
+//     } } }
+//   }
+message Model {
+  repeated Type types = 1;
+
+  // The id that a store gives the model when it keeps it, a ULID. Empty for a model that no store keeps.
+  string id = 2;
+}
+
+// A type of objects, for example `folder`.
+message Type {
+  // The name: lower case letters, digits and `_`, starting with a letter.
+  string name = 1;
+
+  // The relations that its objects have.
+  repeated Relation relations = 2;
+}
+
+// A relation of the objects of a type, for example `viewer`.
+message Relation {
+  // The name: lower case letters, digits and `_`, starting with a letter.
+  string name = 1;
+
+  // Which subjects it has.
+  Rewrite rewrite = 2;
+}
+
+// Which subjects a relation of an object has: Zanzibar's userset rewrite.
+message Rewrite {
+  oneof rewrite {
+    // The subjects that relationships of the relation name.
+    Direct direct = 1;
+
+    // The subjects of another relation of the same object.
+    Computed computed = 2;
+
+    // The subjects of a relation of the objects that a relation of this object names: Zanzibar's tuple to userset.
+    From from = 3;
+
+    // The subjects of any of the rewrites.
+    Rewrites union = 4;
+
+    // The subjects of all of the rewrites.
+    Rewrites intersection = 5;
+
+    // The subjects of one rewrite that another does not have: Zanzibar's exclusion.
+    Difference difference = 6;
+  }
+}
+
+// The subjects that relationships of the relation name.
+message Direct {
+  // What a relationship can name: a type (`user`), every object of a type (`user:*`), or the subjects of a relation of
+  // an object of a type (`group#member`).
+  repeated string subjects = 1;
+}
+
+// The subjects of another relation of the same object.
+message Computed {
+  // The other relation, for example `owner`.
+  string relation = 1;
+}
+
+// The subjects of a relation of the objects that a relation of this object names, for example the viewers of its
+// parent.
+message From {
+  // The relation of this object that names the other objects, for example `parent`. Its rewrite is a direct one of
+  // types only.
+  string tupleset = 1;
+
+  // The relation of the other objects, for example `viewer`.
+  string relation = 2;
+}
+
+// Rewrites that a union or an intersection combines.
+message Rewrites {
+  repeated Rewrite rewrites = 1;
+}
+
+// The subjects of one rewrite that another does not have.
+message Difference {
+  // The subjects.
+  Rewrite base = 1;
+
+  // The subjects to leave out.
+  Rewrite subtract = 2;
+}

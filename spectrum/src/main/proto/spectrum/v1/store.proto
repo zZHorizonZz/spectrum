@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "leadseal/v1/options.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "StoreProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// A store: a set of relationships and the models that combine them, apart from those of every other store, as OpenFGA
+// says it. Spectrum gives a store its id when it creates it; the database sets `create_time`.
+message Store {
+  option (leadseal.v1.table) = {
+    name: "spectrum_store"
+  };
+
+  // The id, a ULID, for example `01JAZ6RE1H6ZQ4WKQ2M0R0S8XQ`.
+  string id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The name, for example `documents`.
+  string name = 2 [(leadseal.v1.column).text = { length: 255 }];
+
+  google.protobuf.Timestamp create_time = 3 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}

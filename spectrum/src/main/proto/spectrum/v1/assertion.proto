@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+import "leadseal/v1/options.proto";
+import "spectrum/v1/relationship.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "AssertionProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// An assertion of a model: what a check of a subject, a relation and an object answers, with contextual relationships.
+// Assertions are tests that a store keeps with a model, as OpenFGA keeps them.
+message Assertion {
+  // The subject, for example `user:ana`.
+  string subject = 1;
+
+  // The relation, for example `viewer`.
+  string relation = 2;
+
+  // The object, for example `doc:9`.
+  string object = 3;
+
+  // What the check answers.
+  bool expectation = 4;
+
+  // The contextual relationships of the check.
+  repeated Relationship contextual = 5;
+}
+
+// The assertions of a model, as the assertion table keeps them: one row per model that has assertions.
+message ModelAssertions {
+  option (leadseal.v1.table) = {
+    name: "spectrum_model_assertions"
+    index: { fields: ["store_id"] }
+  };
+
+  // The model.
+  string model_id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The store of the model.
+  string store_id = 2 [(leadseal.v1.column).text = {
+    length: 32
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The assertions.
+  repeated Assertion assertions = 3 [(leadseal.v1.column).ignore = true];
+
+  // The assertions, as the protobuf JSON of this message with only `assertions` set.
+  string definition = 4;
+}

@@ -1,0 +1,10 @@
+spectrum
+Copyright 2026 the spectrum authors
+
+spectrum-openfga contains the protobuf files of the OpenFGA API, from github.com/openfga/api at commit
+c0650ce2169bcb39a72d73841fb531c200e32248, under the Apache License 2.0 (spectrum-openfga/src/main/proto/openfga/LICENSE).
+Spectrum adds the java_multiple_files, java_outer_classname and java_package options to each file.
+
+spectrum-openfga contains protoc-gen-openapiv2/options/annotations.proto and openapiv2.proto from
+github.com/grpc-ecosystem/grpc-gateway at v2.31.0, under the BSD 3-Clause License
+(spectrum-openfga/src/main/proto/protoc-gen-openapiv2/LICENSE).

@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "leadseal/v1/options.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "ChangeProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// A change of a relationship in a store, as the change table keeps it: a write of a relationship that the store did
+// not have, or a delete of one that it had. A change is written in the transaction of the write or the delete, so the
+// changes of a store are exactly the writes and deletes that committed. Spectrum gives a change a ULID as its id, so
+// that the changes of a store are in order of id; the database sets `create_time`.
+message Change {
+  option (leadseal.v1.table) = {
+    name: "spectrum_change"
+    index: { fields: ["store_id", "id"] }
+  };
+
+  // The id, a ULID, for example `01M4XNYW5SK4DFCPRPE7SHW5H0`.
+  string id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The store.
+  string store_id = 2 [(leadseal.v1.column).text = {
+    length: 32
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The object of the relationship, for example `doc:9`.
+  string object = 3 [(leadseal.v1.column).text = {
+    length: 255
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The relation of the relationship, for example `viewer`.
+  string relation = 4 [(leadseal.v1.column).text = { length: 64 }];
+
+  // The subject of the relationship, for example `user:ana`.
+  string subject = 5 [(leadseal.v1.column).text = { length: 255 }];
+
+  // Whether the relationship was written or deleted.
+  Operation operation = 6 [(leadseal.v1.column) = { nullable: false text: { length: 32 } }];
+
+  google.protobuf.Timestamp create_time = 7 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}
+
+// What a change did to a relationship.
+enum Operation {
+  OPERATION_UNSPECIFIED = 0;
+
+  // The relationship was written.
+  OPERATION_WRITE = 1;
+
+  // The relationship was deleted.
+  OPERATION_DELETE = 2;
+}

@@ -1,0 +1,525 @@
+{
+  "schemaVersion" : "1",
+  "storage" : {
+    "namespaces" : [ {
+      "tables" : [ {
+        "id" : "spectrum.Store",
+        "name" : "spectrum_store",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The id, a ULID, for example `01JAZ6RE1H6ZQ4WKQ2M0R0S8XQ`."
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "name",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The name, for example `documents`."
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_spectrum_store",
+          "columns" : [ "id" ]
+        }, {
+          "kind" : "comment",
+          "text" : "A store: a set of relationships and the models that combine them, apart from those of every other store, as OpenFGA\nsays it. Spectrum gives a store its id when it creates it; the database sets `create_time`."
+        } ]
+      }, {
+        "id" : "spectrum.Relationship",
+        "name" : "spectrum_relationship",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "id",
+          "type" : {
+            "kind" : "uuid"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_random_uuid"
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "store_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The store, for example `01JAZ6RE1H6ZQ4WKQ2M0R0S8XQ`."
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "object",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The object, as `type:id`, for example `doc:9`."
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "relation",
+          "type" : {
+            "kind" : "text",
+            "length" : 64
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The relation, for example `viewer`."
+          } ]
+        }, {
+          "id" : "5",
+          "name" : "subject",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The subject: an object (`user:ana`), every object of a type (`user:*`), or the subjects of a relation of an object\n(`group:eng#member`)."
+          } ]
+        }, {
+          "id" : "6",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_spectrum_relationship",
+          "columns" : [ "id" ]
+        }, {
+          "kind" : "index",
+          "name" : "ux_spectrum_relationship_store_id_object_relation_subject",
+          "columns" : [ "store_id", "object", "relation", "subject" ],
+          "unique" : true
+        }, {
+          "kind" : "index",
+          "name" : "ix_spectrum_relationship_store_id_subject_relation_object",
+          "columns" : [ "store_id", "subject", "relation", "object" ],
+          "unique" : false
+        }, {
+          "kind" : "comment",
+          "text" : "A relationship: the subject has the relation to the object in a store, a relation tuple of Zanzibar, as the\nrelationship table keeps it. The migrations of the table are in `spectrum/migration`. A write sets `object`,\n`relation` and `subject` in the store of the relationships; the database sets `id` and `create_time`."
+        } ]
+      }, {
+        "id" : "spectrum.ModelAssertions",
+        "name" : "spectrum_model_assertions",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "model_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The model."
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "store_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The store of the model."
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "definition",
+          "type" : {
+            "kind" : "text"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The assertions, as the protobuf JSON of this message with only `assertions` set."
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_spectrum_model_assertions",
+          "columns" : [ "model_id" ]
+        }, {
+          "kind" : "index",
+          "name" : "ix_spectrum_model_assertions_store_id",
+          "columns" : [ "store_id" ],
+          "unique" : false
+        }, {
+          "kind" : "comment",
+          "text" : "The assertions of a model, as the assertion table keeps them: one row per model that has assertions."
+        } ]
+      }, {
+        "id" : "spectrum.StoreModel",
+        "name" : "spectrum_store_model",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The id, a ULID, for example `01JAZ6S3N6T3Y5W1Z8PKV9B4CD`."
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "store_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The store."
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "definition",
+          "type" : {
+            "kind" : "text"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The model, as protobuf JSON."
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_spectrum_store_model",
+          "columns" : [ "id" ]
+        }, {
+          "kind" : "index",
+          "name" : "ix_spectrum_store_model_store_id_id",
+          "columns" : [ "store_id", "id" ],
+          "unique" : false
+        }, {
+          "kind" : "comment",
+          "text" : "A model that a store keeps, as the model table keeps it. A store keeps each model it is given, and the model with the\ngreatest id is its latest. Spectrum gives a model its id when the store keeps it; the database sets `create_time`."
+        } ]
+      }, {
+        "id" : "spectrum.Change",
+        "name" : "spectrum_change",
+        "columns" : [ {
+          "id" : "1",
+          "name" : "id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The id, a ULID, for example `01M4XNYW5SK4DFCPRPE7SHW5H0`."
+          } ]
+        }, {
+          "id" : "2",
+          "name" : "store_id",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The store."
+          } ]
+        }, {
+          "id" : "3",
+          "name" : "object",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "collation",
+            "dialect" : "postgresql",
+            "name" : "C"
+          }, {
+            "kind" : "collation",
+            "dialect" : "mariadb",
+            "name" : "utf8mb4_bin"
+          }, {
+            "kind" : "collation",
+            "dialect" : "sqlserver",
+            "name" : "Latin1_General_100_BIN2"
+          }, {
+            "kind" : "comment",
+            "text" : "The object of the relationship, for example `doc:9`."
+          } ]
+        }, {
+          "id" : "4",
+          "name" : "relation",
+          "type" : {
+            "kind" : "text",
+            "length" : 64
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The relation of the relationship, for example `viewer`."
+          } ]
+        }, {
+          "id" : "5",
+          "name" : "subject",
+          "type" : {
+            "kind" : "text",
+            "length" : 255
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "The subject of the relationship, for example `user:ana`."
+          } ]
+        }, {
+          "id" : "6",
+          "name" : "operation",
+          "type" : {
+            "kind" : "text",
+            "length" : 32
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "comment",
+            "text" : "Whether the relationship was written or deleted."
+          } ]
+        }, {
+          "id" : "7",
+          "name" : "create_time",
+          "type" : {
+            "kind" : "timestamp"
+          },
+          "attributes" : [ {
+            "kind" : "not_null"
+          }, {
+            "kind" : "default_now"
+          } ]
+        } ],
+        "attributes" : [ {
+          "kind" : "primary_key",
+          "name" : "pk_spectrum_change",
+          "columns" : [ "id" ]
+        }, {
+          "kind" : "index",
+          "name" : "ix_spectrum_change_store_id_id",
+          "columns" : [ "store_id", "id" ],
+          "unique" : false
+        }, {
+          "kind" : "comment",
+          "text" : "A change of a relationship in a store, as the change table keeps it: a write of a relationship that the store did\nnot have, or a delete of one that it had. A change is written in the transaction of the write or the delete, so the\nchanges of a store are exactly the writes and deletes that committed. Spectrum gives a change a ULID as its id, so\nthat the changes of a store are in order of id; the database sets `create_time`."
+        } ]
+      } ]
+    } ]
+  },
+  "storageHash" : "522cfd32d50b11a3"
+}

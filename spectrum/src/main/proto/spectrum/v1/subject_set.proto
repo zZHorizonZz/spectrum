@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+option java_multiple_files = true;
+option java_outer_classname = "SubjectSetProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// The subjects of one type that have a relation to an object: some of them, or all of them but some. A subject is in
+// the set exactly when a check of it is true.
+message SubjectSet {
+  // The subjects that have the relation, in order, when not all of them have it.
+  repeated string subjects = 1;
+
+  // True if every object of the type has the relation, but those in `except`.
+  bool all = 2;
+
+  // The subjects that do not have the relation, in order, when `all` is true.
+  repeated string except = 3;
+}

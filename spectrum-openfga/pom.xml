@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>dev.horizon</groupId>
+    <artifactId>spectrum-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>spectrum-openfga</artifactId>
+  <name>Spectrum - OpenFGA</name>
+  <description>The OpenFGA service on Spectrum, for the Vert.x event bus or any Vert.x gRPC server.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>dev.horizon</groupId>
+      <artifactId>spectrum</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-grpc-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-grpc-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-grpc-transcoding</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.api.grpc</groupId>
+      <artifactId>proto-google-common-protos</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>build.buf.protoc-gen-validate</groupId>
+      <artifactId>pgv-java-stub</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.github.ascopes</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <configuration>
+          <embedSourcesInClassOutputs>true</embedSourcesInClassOutputs>
+          <plugins>
+            <plugin kind="jvm-maven">
+              <groupId>io.vertx</groupId>
+              <artifactId>vertx-grpc-protoc-plugin2</artifactId>
+              <version>${vertx.version}</version>
+              <mainClass>io.vertx.grpc.plugin.VertxGrpcGenerator</mainClass>
+              <options>grpc-client=true,grpc-service=true</options>
+            </plugin>
+          </plugins>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

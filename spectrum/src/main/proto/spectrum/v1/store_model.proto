@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package spectrum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "leadseal/v1/options.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "StoreModelProto";
+option java_package = "dev.horizon.spectrum.v1";
+
+// A model that a store keeps, as the model table keeps it. A store keeps each model it is given, and the model with the
+// greatest id is its latest. Spectrum gives a model its id when the store keeps it; the database sets `create_time`.
+message StoreModel {
+  option (leadseal.v1.table) = {
+    name: "spectrum_store_model"
+    index: { fields: ["store_id", "id"] }
+  };
+
+  // The id, a ULID, for example `01JAZ6S3N6T3Y5W1Z8PKV9B4CD`.
+  string id = 1 [(leadseal.v1.column) = {
+    primary_key: true
+    text: {
+      length: 32
+      collation: [
+        { key: "postgresql" value: "C" },
+        { key: "mariadb" value: "utf8mb4_bin" },
+        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+      ]
+    }
+  }];
+
+  // The store.
+  string store_id = 2 [(leadseal.v1.column).text = {
+    length: 32
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
+  }];
+
+  // The model, as protobuf JSON.
+  string definition = 3;
+
+  google.protobuf.Timestamp create_time = 4 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}
