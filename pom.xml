@@ -47,7 +47,7 @@
     <openfga-language.version>0.2.1</openfga-language.version>
     <aquery.version>0.3.1-SNAPSHOT</aquery.version>
     <basepoint.version>0.1.1-SNAPSHOT</basepoint.version>
-    <leadseal.version>0.1.1-SNAPSHOT</leadseal.version>
+    <leadseal.version>0.2.0</leadseal.version>
     <vertx.version>5.2.0</vertx.version>
     <protobuf.version>4.36.2</protobuf.version>
     <google-common-protos.version>2.76.0</google-common-protos.version>
