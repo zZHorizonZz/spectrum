@@ -16,6 +16,7 @@ import dev.horizon.spectrum.tuple.RelationshipTuple;
 import dev.horizon.spectrum.tuple.TupleObject;
 import dev.horizon.spectrum.tuple.TupleUser;
 import dev.horizon.spectrum.tuple.WriteValidator;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -80,7 +81,9 @@ public final class ListObjectsQuery {
   }
 
   /**
-   * Gives each object to a consumer as the search finds it, without a most results.
+   * Gives each object to a consumer as the search finds it, without a most results. The consumer and the answer run
+   * on the context of the caller, in the order the search found the objects, so the caller can write each object to a
+   * response and end it there.
    *
    * @param request the objects to list
    * @param found takes each object once
@@ -89,20 +92,21 @@ public final class ListObjectsQuery {
    */
   public Future<Void> stream(Request request, TypeSystem types, Consumer<String> found) {
     validate(request, types);
+    Context context = vertx.getOrCreateContext();
     Promise<Void> answer = Promise.promise();
     long deadline = vertx.setTimer(options.listObjectsDeadline().toMillis(), expired -> answer.tryComplete());
-    search(request, types, object -> {
+    search(request, types, object -> context.runOnContext(delivered -> {
       if (!answer.future().isComplete()) {
         found.accept(object);
       }
-    }).onComplete(done -> {
+    })).onComplete(done -> context.runOnContext(ended -> {
       vertx.cancelTimer(deadline);
       if (done.failed()) {
         answer.tryFail(done.cause());
       } else {
         answer.tryComplete();
       }
-    });
+    }));
     return answer.future();
   }
 
