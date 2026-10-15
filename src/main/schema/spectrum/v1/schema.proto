@@ -9,9 +9,9 @@ option java_multiple_files = true;
 option java_outer_classname = "SchemaProto";
 option java_package = "dev.horizon.spectrum.schema.v1";
 
-// A store. Deleting a store sets `deleted_at` and keeps its rows, as OpenFGA does.
+// A store. Deleting a store sets `deleted_at` and keeps its rows.
 message Store {
-  option (leadseal.v1.table) = {};
+  option (leadseal.v1.table) = { name: "spectrum_store" };
 
   // The store ID, a ULID.
   string id = 1 [(leadseal.v1.column) = {
@@ -37,7 +37,7 @@ message Store {
 
 // An authorization model of a store. Models never change after they are written.
 message AuthorizationModel {
-  option (leadseal.v1.table) = {};
+  option (leadseal.v1.table) = { name: "spectrum_authorization_model" };
 
   string store = 1 [(leadseal.v1.column) = {
     primary_key: true
@@ -73,8 +73,9 @@ message AuthorizationModel {
 // A relationship tuple of a store.
 message Tuple {
   option (leadseal.v1.table) = {
-    index: { name: "ux_tuple_ulid" fields: ["ulid"] unique: true }
-    index: { name: "ix_tuple_user_lookup" fields: ["store", "user", "relation", "object_type", "object_id"] }
+    name: "spectrum_tuple"
+    index: { name: "ux_spectrum_tuple_ulid" fields: ["ulid"] unique: true }
+    index: { name: "ix_spectrum_tuple_user_lookup" fields: ["store", "user", "relation", "object_type", "object_id"] }
   };
 
   string store = 1 [(leadseal.v1.column) = {
@@ -163,7 +164,7 @@ message Tuple {
 
 // A write or a delete of a tuple of a store, in the transaction of the change.
 message Changelog {
-  option (leadseal.v1.table) = {};
+  option (leadseal.v1.table) = { name: "spectrum_changelog" };
 
   string store = 1 [(leadseal.v1.column) = {
     primary_key: true
@@ -221,7 +222,7 @@ message Changelog {
 
 // The assertions of an authorization model.
 message Assertion {
-  option (leadseal.v1.table) = {};
+  option (leadseal.v1.table) = { name: "spectrum_assertion" };
 
   string store = 1 [(leadseal.v1.column) = {
     primary_key: true

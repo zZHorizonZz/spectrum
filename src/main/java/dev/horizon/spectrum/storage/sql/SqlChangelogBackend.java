@@ -15,7 +15,7 @@ import java.util.List;
 
 public final class SqlChangelogBackend implements ChangelogBackend {
 
-  private static final String CHANGELOG = "changelog";
+  private static final String CHANGELOG = "spectrum_changelog";
 
   private final SqlDatabase database;
   private final TupleRows rows;

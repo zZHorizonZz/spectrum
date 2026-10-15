@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public final class SqlAssertionsBackend implements AssertionsBackend {
 
-  private static final String ASSERTION = "assertion";
+  private static final String ASSERTION = "spectrum_assertion";
   private static final String[] KEY = { "store", "authorization_model_id" };
 
   private final SqlDatabase database;

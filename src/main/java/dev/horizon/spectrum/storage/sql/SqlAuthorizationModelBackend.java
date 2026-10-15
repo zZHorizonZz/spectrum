@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 public final class SqlAuthorizationModelBackend implements AuthorizationModelBackend {
 
-  private static final String AUTHORIZATION_MODEL = "authorization_model";
+  private static final String AUTHORIZATION_MODEL = "spectrum_authorization_model";
 
   private final SqlDatabase database;
 

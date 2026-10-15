@@ -1,10 +1,11 @@
 # Tables
 
-The tables follow the SQL schema of OpenFGA. The column names are those of OpenFGA's PostgreSQL schema, and the
-lengths of text columns are those of its MySQL schema. The messages in `spectrum/v1/schema.proto` define the tables,
-and [Leadseal](https://github.com/zZHorizonZz/leadseal) generates their migrations.
+The tables follow the SQL schema of OpenFGA, with the prefix `spectrum_` on their names. The column names are those of
+OpenFGA's PostgreSQL schema, and the lengths of text columns are those of its MySQL schema. The messages in
+`spectrum/v1/schema.proto` define the tables, and [Leadseal](https://github.com/zZHorizonZz/leadseal) generates their
+migrations.
 
-## store
+## spectrum_store
 
 | Column       | Type      | Description                                        |
 | ------------ | --------- | -------------------------------------------------- |
@@ -14,7 +15,7 @@ and [Leadseal](https://github.com/zZHorizonZz/leadseal) generates their migratio
 | `updated_at` | Timestamp | The time the store was last renamed                |
 | `deleted_at` | Timestamp | The time the store was deleted, or `NULL`          |
 
-## authorization_model
+## spectrum_authorization_model
 
 | Column                   | Type     | Description                                                     |
 | ------------------------ | -------- | --------------------------------------------------------------- |
@@ -27,7 +28,7 @@ The primary key is `store` and `authorization_model_id`. OpenFGA's table also ha
 `type_definition`, for models of a row per type definition. OpenFGA writes each new model as one row with
 `serialized_protobuf`, so Spectrum keeps only that.
 
-## tuple
+## spectrum_tuple
 
 | Column              | Type      | Description                                                            |
 | ------------------- | --------- | ---------------------------------------------------------------------- |
@@ -42,11 +43,11 @@ The primary key is `store` and `authorization_model_id`. OpenFGA's table also ha
 | `ulid`              | Text, 26  | The tuple ID, a ULID of the time of the write                          |
 | `inserted_at`       | Timestamp | The time of the write                                                  |
 
-The primary key is `store`, `object_type`, `object_id`, `relation` and `_user`. The index `ux_tuple_ulid` holds
-`ulid`, and `ix_tuple_user_lookup` holds `store`, `_user`, `relation`, `object_type` and `object_id` for lists from
-a user. OpenFGA also has partial indexes by `user_type`, which MariaDB cannot create, so Spectrum leaves them out.
+The primary key is `store`, `object_type`, `object_id`, `relation` and `_user`. The index `ux_spectrum_tuple_ulid` holds
+`ulid`, and `ix_spectrum_tuple_user_lookup` holds `store`, `_user`, `relation`, `object_type` and `object_id` for lists
+from a user. OpenFGA also has partial indexes by `user_type`, which MariaDB cannot create, so Spectrum leaves them out.
 
-## changelog
+## spectrum_changelog
 
 | Column              | Type      | Description                                                       |
 | ------------------- | --------- | ----------------------------------------------------------------- |
@@ -63,7 +64,7 @@ a user. OpenFGA also has partial indexes by `user_type`, which MariaDB cannot cr
 
 The primary key is `store`, `ulid` and `object_type`.
 
-## assertion
+## spectrum_assertion
 
 | Column                   | Type     | Description                                                |
 | ------------------------ | -------- | ---------------------------------------------------------- |

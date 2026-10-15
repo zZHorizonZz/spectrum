@@ -7,8 +7,8 @@ import java.util.List;
 
 public record RunningDatabase(Vertx vertx, Pool pool, Dialect dialect) implements AutoCloseable {
 
-  private static final List<String> TABLES = List.of("tuple", "changelog", "assertion", "authorization_model",
-      "store");
+  private static final List<String> TABLES = List.of("spectrum_tuple", "spectrum_changelog",
+      "spectrum_assertion", "spectrum_authorization_model", "spectrum_store");
 
   public void empty() {
     for (String table : TABLES) {

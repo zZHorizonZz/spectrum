@@ -1,9 +1,9 @@
 # Create the tables
 
-Spectrum keeps its data in five tables of your database: `store`, `authorization_model`, `tuple`, `changelog` and
-`assertion`. The `spectrum` JAR contains the migrations that create them, under `spectrum/migration`, one folder per
-version. [Leadseal](https://github.com/zZHorizonZz/leadseal) generates these migrations from the protobuf messages
-in `spectrum/v1/schema.proto`.
+Spectrum keeps its data in five tables of your database: `spectrum_store`, `spectrum_authorization_model`,
+`spectrum_tuple`, `spectrum_changelog` and `spectrum_assertion`. The `spectrum` JAR contains the migrations that create
+them, under `spectrum/migration`, one folder per version. [Leadseal](https://github.com/zZHorizonZz/leadseal) generates
+these migrations from the protobuf messages in `spectrum/v1/schema.proto`.
 
 ## Before you begin
 
@@ -51,22 +51,22 @@ in `spectrum/v1/schema.proto`.
    ```
 
 2. Add the files to your migration tool in the order of their names. Each name is a version, such as
-   `V20261015055048.sql`.
+   `V20261015115103.sql`.
 
 > [!CAUTION]
 > Do not edit the files. A later version of Spectrum adds migrations that expect the tables as these files create
 > them.
 
-> [!WARNING]
-> The table names are those of OpenFGA. If your database already has a table named `store`, `tuple`, `changelog`,
-> `assertion` or `authorization_model`, give Spectrum its own schema or database.
+> [!NOTE]
+> Every table, primary key and index of Spectrum starts with `spectrum_`, so the tables can share a database with
+> the tables of your application.
 
 ## Verify
 
 Query the tuple table. It exists and is empty:
 
 ```sql
-SELECT count(*) FROM tuple;
+SELECT count(*) FROM spectrum_tuple;
 ```
 
 ```txt output

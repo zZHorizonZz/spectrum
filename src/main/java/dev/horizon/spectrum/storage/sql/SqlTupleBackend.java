@@ -44,8 +44,8 @@ import java.util.function.Function;
  */
 public final class SqlTupleBackend implements TupleBackend {
 
-  private static final String TUPLE = "tuple";
-  private static final String CHANGELOG = "changelog";
+  private static final String TUPLE = "spectrum_tuple";
+  private static final String CHANGELOG = "spectrum_changelog";
   private static final String[] KEY = { "store", "object_type", "object_id", "relation", "_user" };
 
   private static final int TUPLES_PER_STATEMENT = 100;

@@ -73,6 +73,7 @@ from:
 
 ## Storage
 
-The tables follow OpenFGA's SQL schema: `store`, `authorization_model`, `tuple`, `changelog` and `assertion`. Each
+The tables follow OpenFGA's SQL schema, with the prefix `spectrum_`: `spectrum_store`,
+`spectrum_authorization_model`, `spectrum_tuple`, `spectrum_changelog` and `spectrum_assertion`. Each
 table has a backend in `storage.sql`. A write reads the stored rows of its tuples, deletes and inserts in one
 transaction, and records each change in the changelog. For the columns, refer to [Tables](../reference/tables.md).

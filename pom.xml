@@ -391,7 +391,7 @@
                   <groupId>dev.horizon</groupId>
                   <artifactId>leadseal-protoc</artifactId>
                   <version>${leadseal.version}</version>
-                  <options>migrations=${spectrum.migrations},dialect=postgresql,dialect=mariadb,dialect=sqlserver,dialect=sqlite</options>
+                  <options>migrations=${spectrum.migrations},prefix=spectrum_,dialect=postgresql,dialect=mariadb,dialect=sqlserver,dialect=sqlite</options>
                   <outputDirectory>${spectrum.migrations}</outputDirectory>
                   <registerAsCompilationRoot>false</registerAsCompilationRoot>
                 </plugin>

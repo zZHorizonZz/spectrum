@@ -25,7 +25,7 @@ import java.util.Optional;
  */
 public final class SqlStoresBackend implements StoresBackend {
 
-  private static final String STORE = "store";
+  private static final String STORE = "spectrum_store";
 
   private final SqlDatabase database;
 

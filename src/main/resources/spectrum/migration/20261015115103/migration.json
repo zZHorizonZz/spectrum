@@ -1,13 +1,13 @@
 {
-  "version" : "20261015055048",
-  "name" : "create_store_and_4_more",
-  "to" : "fbdfad85ebaa7fa6",
-  "created" : "2026-10-15T05:50:48.230128400Z",
+  "version" : "20261015115103",
+  "name" : "create_spectrum_store_and_4_more",
+  "to" : "805517fa4fb97c74",
+  "created" : "2026-10-15T11:51:03.557288500Z",
   "changes" : [ {
     "change" : "create_table",
     "definition" : {
       "id" : "spectrum.Store",
-      "name" : "store",
+      "name" : "spectrum_store",
       "columns" : [ {
         "id" : "1",
         "name" : "id",
@@ -69,18 +69,18 @@
       } ],
       "attributes" : [ {
         "kind" : "primary_key",
-        "name" : "pk_store",
+        "name" : "pk_spectrum_store",
         "columns" : [ "id" ]
       }, {
         "kind" : "comment",
-        "text" : "A store. Deleting a store sets `deleted_at` and keeps its rows, as OpenFGA does."
+        "text" : "A store. Deleting a store sets `deleted_at` and keeps its rows."
       } ]
     }
   }, {
     "change" : "create_table",
     "definition" : {
       "id" : "spectrum.AuthorizationModel",
-      "name" : "authorization_model",
+      "name" : "spectrum_authorization_model",
       "columns" : [ {
         "id" : "1",
         "name" : "store",
@@ -153,7 +153,7 @@
       } ],
       "attributes" : [ {
         "kind" : "primary_key",
-        "name" : "pk_authorization_model",
+        "name" : "pk_spectrum_authorization_model",
         "columns" : [ "store", "authorization_model_id" ]
       }, {
         "kind" : "comment",
@@ -164,7 +164,7 @@
     "change" : "create_table",
     "definition" : {
       "id" : "spectrum.Tuple",
-      "name" : "tuple",
+      "name" : "spectrum_tuple",
       "columns" : [ {
         "id" : "1",
         "name" : "store",
@@ -347,16 +347,16 @@
       } ],
       "attributes" : [ {
         "kind" : "primary_key",
-        "name" : "pk_tuple",
+        "name" : "pk_spectrum_tuple",
         "columns" : [ "store", "object_type", "object_id", "relation", "_user" ]
       }, {
         "kind" : "index",
-        "name" : "ux_tuple_ulid",
+        "name" : "ux_spectrum_tuple_ulid",
         "columns" : [ "ulid" ],
         "unique" : true
       }, {
         "kind" : "index",
-        "name" : "ix_tuple_user_lookup",
+        "name" : "ix_spectrum_tuple_user_lookup",
         "columns" : [ "store", "_user", "relation", "object_type", "object_id" ],
         "unique" : false
       }, {
@@ -368,7 +368,7 @@
     "change" : "create_table",
     "definition" : {
       "id" : "spectrum.Changelog",
-      "name" : "changelog",
+      "name" : "spectrum_changelog",
       "columns" : [ {
         "id" : "1",
         "name" : "store",
@@ -512,7 +512,7 @@
       } ],
       "attributes" : [ {
         "kind" : "primary_key",
-        "name" : "pk_changelog",
+        "name" : "pk_spectrum_changelog",
         "columns" : [ "store", "ulid", "object_type" ]
       }, {
         "kind" : "comment",
@@ -523,7 +523,7 @@
     "change" : "create_table",
     "definition" : {
       "id" : "spectrum.Assertion",
-      "name" : "assertion",
+      "name" : "spectrum_assertion",
       "columns" : [ {
         "id" : "1",
         "name" : "store",
@@ -583,7 +583,7 @@
       } ],
       "attributes" : [ {
         "kind" : "primary_key",
-        "name" : "pk_assertion",
+        "name" : "pk_spectrum_assertion",
         "columns" : [ "store", "authorization_model_id" ]
       }, {
         "kind" : "comment",
