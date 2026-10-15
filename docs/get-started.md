@@ -18,7 +18,7 @@ Add Spectrum, the Basepoint dialect and Vert.x client of your database, and the 
 <dependency>
   <groupId>dev.horizon</groupId>
   <artifactId>spectrum</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
