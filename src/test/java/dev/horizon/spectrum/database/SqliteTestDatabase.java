@@ -1,8 +1,7 @@
 package dev.horizon.spectrum.database;
 
-import dev.horizon.aquery.ParameterStyle;
-import dev.horizon.basepoint.Dialect;
-import dev.horizon.basepoint.sqlite.SqliteDialect;
+import dev.horizon.cinder.Driver;
+import dev.horizon.cinder.sqlite.SqliteDriver;
 import io.vertx.core.Vertx;
 import io.vertx.jdbcclient.JDBCConnectOptions;
 import io.vertx.jdbcclient.JDBCPool;
@@ -43,8 +42,8 @@ public final class SqliteTestDatabase implements TestDatabase {
   }
 
   @Override
-  public Dialect dialect() {
-    return new SqliteDialect(ParameterStyle.QUESTION_MARK);
+  public Driver driver() {
+    return new SqliteDriver();
   }
 
   @Override

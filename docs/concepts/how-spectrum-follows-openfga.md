@@ -17,7 +17,7 @@ Packages under `dev.horizon.spectrum` hold the parts. Only `dev.horizon.spectrum
 | `pkg/server/commands/listusers`     | `ListUsersQuery` in `listusers`                                                                                       |
 | `internal/condition`                | `EvaluableCondition`, `ParameterType` and `IpAddress` in `common`                                                     |
 | `pkg/storage`                       | `TupleBackend`, `AuthorizationModelBackend`, `StoresBackend`, `AssertionsBackend` and `ChangelogBackend` in `storage` |
-| `pkg/storage/sqlcommon`             | One SQL backend per table in `storage.sql`                                                                            |
+| `pkg/storage/sqlcommon`             | The Cinder drivers, one per database, under the backends                                                              |
 | `pkg/storage/storagewrappers`       | `CombinedTupleReader` in `storage`                                                                                    |
 | `pkg/encoder`                       | `PageQuery` in `storage`, over the AIP-158 page tokens of aquery                                                      |
 
@@ -75,5 +75,6 @@ from:
 
 The tables follow OpenFGA's SQL schema, with the prefix `spectrum_`: `spectrum_store`,
 `spectrum_authorization_model`, `spectrum_tuple`, `spectrum_changelog` and `spectrum_assertion`. Each
-table has a backend in `storage.sql`. A write reads the stored rows of its tuples, deletes and inserts in one
-transaction, and records each change in the changelog. For the columns, refer to [Tables](../reference/tables.md).
+table has a backend in `storage`, a Cinder `Backend` of the Leadseal message of the table in `spectrum.v1`. A write
+reads the stored rows of its tuples, deletes and inserts in one transaction, and records each change in the
+changelog. For the columns, refer to [Tables](../reference/tables.md).

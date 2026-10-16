@@ -1,11 +1,11 @@
 package dev.horizon.spectrum.database;
 
-import dev.horizon.basepoint.Dialect;
+import dev.horizon.cinder.Driver;
 import io.vertx.core.Vertx;
 import io.vertx.sqlclient.Pool;
 import java.util.List;
 
-public record RunningDatabase(Vertx vertx, Pool pool, Dialect dialect) implements AutoCloseable {
+public record RunningDatabase(Vertx vertx, Pool pool, Driver driver) implements AutoCloseable {
 
   private static final List<String> TABLES = List.of("spectrum_tuple", "spectrum_changelog",
       "spectrum_assertion", "spectrum_authorization_model", "spectrum_store");

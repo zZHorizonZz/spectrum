@@ -1,8 +1,7 @@
 package dev.horizon.spectrum.database;
 
-import dev.horizon.aquery.ParameterStyle;
-import dev.horizon.basepoint.Dialect;
-import dev.horizon.basepoint.sqlserver.SqlServerDialect;
+import dev.horizon.cinder.Driver;
+import dev.horizon.cinder.sqlserver.SqlServerDriver;
 import io.vertx.core.Vertx;
 import io.vertx.mssqlclient.MSSQLBuilder;
 import io.vertx.mssqlclient.MSSQLConnectOptions;
@@ -45,8 +44,8 @@ public final class SqlServerTestDatabase implements TestDatabase {
   }
 
   @Override
-  public Dialect dialect() {
-    return new SqlServerDialect(ParameterStyle.AT_P);
+  public Driver driver() {
+    return new SqlServerDriver();
   }
 
   @Override

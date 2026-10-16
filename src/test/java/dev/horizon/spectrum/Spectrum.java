@@ -37,7 +37,7 @@ final class Spectrum implements AutoCloseable {
   OpenFGAServiceGrpcClient serve(OpenFgaServiceOptions options) {
     close();
     server = EventBusGrpcServer.server(database.vertx()).await();
-    server.addService(OpenFgaService.create(database.vertx(), database.pool(), database.dialect(), options));
+    server.addService(OpenFgaService.create(database.vertx(), database.pool(), database.driver(), options));
     client = EventBusGrpcClient.client(database.vertx()).await();
     fga = OpenFGAServiceGrpcClient.create(client);
     return fga;

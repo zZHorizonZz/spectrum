@@ -11,7 +11,7 @@ an authorization model and a tuple, and check a relation.
 
 ## 1. Add the dependencies
 
-Add Spectrum, the Basepoint dialect and Vert.x client of your database, and the Vert.x gRPC event bus:
+Add Spectrum, the Cinder driver and Vert.x client of your database, and the Vert.x gRPC event bus:
 
 <!-- x-release-please-start-version -->
 ```xml
@@ -26,8 +26,8 @@ Add Spectrum, the Basepoint dialect and Vert.x client of your database, and the 
 ```xml
 <dependency>
   <groupId>dev.horizon</groupId>
-  <artifactId>basepoint-dialect-postgres</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <artifactId>cinder-database-postgres</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
 </dependency>
 <dependency>
   <groupId>io.vertx</groupId>
@@ -47,7 +47,7 @@ messages and client of `dev.horizon.spectrum.openfga.v1`:
 ```java
 module com.example.app {
   requires dev.horizon.spectrum;
-  requires dev.horizon.basepoint.postgres;
+  requires dev.horizon.cinder.postgres;
   requires io.vertx.grpc.eventbus;
   requires io.vertx.sql.client.pg;
 }
@@ -81,7 +81,7 @@ Vertx vertx = Vertx.vertx();
 Pool pool = PgBuilder.pool().connectingTo("postgresql://app:secret@localhost:5432/app").using(vertx).build();
 
 EventBusGrpcServer server = EventBusGrpcServer.server(vertx).await();
-server.addService(OpenFgaService.create(vertx, pool, new PostgresDialect(ParameterStyle.DOLLAR)));
+server.addService(OpenFgaService.create(vertx, pool, new PostgresDriver()));
 ```
 
 ## 4. Call the service

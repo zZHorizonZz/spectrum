@@ -7,7 +7,7 @@ service, and the generated `OpenFGAServiceGrpcClient` calls either.
 ## Before you begin
 
 - Create the tables. For more information, refer to [Create the tables](create-the-tables.md).
-- Create a Vert.x pool of your database, and the Basepoint dialect that matches it. For more information, refer to
+- Create a Vert.x pool of your database, and the Cinder driver that matches it. For more information, refer to
   [Databases](../reference/databases.md).
 
 ## Serve the service over the event bus
@@ -18,7 +18,7 @@ service, and the generated `OpenFGAServiceGrpcClient` calls either.
 
    ```java
    EventBusGrpcServer server = EventBusGrpcServer.server(vertx).await();
-   server.addService(OpenFgaService.create(vertx, pool, dialect));
+   server.addService(OpenFgaService.create(vertx, pool, driver));
    ```
 
 3. Call the service from any verticle of the Vert.x instance, or of the cluster:
@@ -33,7 +33,7 @@ service, and the generated `OpenFGAServiceGrpcClient` calls either.
 
    ```java
    GrpcServer grpc = GrpcServer.server(vertx);
-   grpc.addService(OpenFgaService.create(vertx, pool, dialect));
+   grpc.addService(OpenFgaService.create(vertx, pool, driver));
    vertx.createHttpServer().requestHandler(grpc).listen(8081).await();
    ```
 
@@ -52,7 +52,7 @@ service, and the generated `OpenFGAServiceGrpcClient` calls either.
 Pass options with other limits to the service:
 
 ```java
-OpenFgaService service = OpenFgaService.create(vertx, pool, dialect, new OpenFgaServiceOptions()
+OpenFgaService service = OpenFgaService.create(vertx, pool, driver, new OpenFgaServiceOptions()
     .withMaxTuplesPerWrite(500)
     .withListObjects(5000, Duration.ofSeconds(10)));
 ```

@@ -1,8 +1,7 @@
 package dev.horizon.spectrum.database;
 
-import dev.horizon.aquery.ParameterStyle;
-import dev.horizon.basepoint.Dialect;
-import dev.horizon.basepoint.mariadb.MariaDbDialect;
+import dev.horizon.cinder.Driver;
+import dev.horizon.cinder.mariadb.MariaDbDriver;
 import io.vertx.core.Vertx;
 import io.vertx.mysqlclient.MySQLBuilder;
 import io.vertx.mysqlclient.MySQLConnectOptions;
@@ -31,8 +30,8 @@ public final class MariaDbTestDatabase implements TestDatabase {
   }
 
   @Override
-  public Dialect dialect() {
-    return new MariaDbDialect(ParameterStyle.QUESTION_MARK);
+  public Driver driver() {
+    return new MariaDbDriver();
   }
 
   @Override

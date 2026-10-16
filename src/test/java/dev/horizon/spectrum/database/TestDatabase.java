@@ -1,6 +1,6 @@
 package dev.horizon.spectrum.database;
 
-import dev.horizon.basepoint.Dialect;
+import dev.horizon.cinder.Driver;
 import io.vertx.core.Vertx;
 import io.vertx.sqlclient.Pool;
 import org.flywaydb.core.Flyway;
@@ -16,7 +16,7 @@ public interface TestDatabase {
 
   String migrations();
 
-  Dialect dialect();
+  Driver driver();
 
   Pool pool(Vertx vertx);
 
@@ -26,6 +26,6 @@ public interface TestDatabase {
         .locations("classpath:spectrum/migration/**/" + migrations()).table("spectrum_schema_history")
         .baselineOnMigrate(true).load().migrate();
     Vertx vertx = Vertx.vertx();
-    return new RunningDatabase(vertx, pool(vertx), dialect());
+    return new RunningDatabase(vertx, pool(vertx), driver());
   }
 }

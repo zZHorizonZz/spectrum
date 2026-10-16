@@ -6,7 +6,7 @@ tables of your own PostgreSQL, MariaDB, SQL Server or SQLite database. It follow
 
 ```java
 EventBusGrpcServer server = EventBusGrpcServer.server(vertx).await();
-server.addService(OpenFgaService.create(vertx, pool, new PostgresDialect(ParameterStyle.DOLLAR)));
+server.addService(OpenFgaService.create(vertx, pool, new PostgresDriver()));
 
 OpenFGAServiceGrpcClient fga = OpenFGAServiceGrpcClient.create(EventBusGrpcClient.client(vertx).await());
 fga.check(CheckRequest.newBuilder().setStoreId(store).setTupleKey(CheckRequestTupleKey.newBuilder()
@@ -105,7 +105,9 @@ mvn verify -Dspectrum.test.mariadb.image=mariadb:11.4
 - [Vert.x gRPC](https://vertx.io/docs/vertx-grpc/java/), whose health service is the model of the service
 - [cel-java](https://github.com/google/cel-java), which evaluates the conditions
 - [Leadseal](https://github.com/zZHorizonZz/leadseal), which generates the migrations
-- [Basepoint](https://github.com/zZHorizonZz/basepoint), which writes the SQL of each database
+- [Cinder](https://github.com/zZHorizonZz/cinder), which reads and writes the tables through a driver for each
+  database
+- [Basepoint](https://github.com/zZHorizonZz/basepoint), which writes the SQL of each database for Cinder
 
 ## License
 

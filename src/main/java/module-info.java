@@ -4,7 +4,7 @@
  */
 module dev.horizon.spectrum {
   requires transitive com.google.protobuf;
-  requires transitive dev.horizon.basepoint;
+  requires transitive dev.horizon.cinder;
   requires transitive io.vertx.core;
   requires transitive io.vertx.grpc.client;
   requires transitive io.vertx.grpc.common;
@@ -12,6 +12,8 @@ module dev.horizon.spectrum {
   requires transitive io.vertx.sql.client;
   requires com.google.common;
   requires dev.horizon.aquery.api;
+  requires dev.horizon.cinder.protobuf;
+  requires dev.horizon.leadseal.protobuf;
   requires com.google.protobuf.util;
 
   exports dev.horizon.spectrum;

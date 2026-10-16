@@ -1,14 +1,30 @@
 package dev.horizon.spectrum.storage;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import dev.horizon.cinder.Backend;
+import dev.horizon.cinder.Conflict;
+import dev.horizon.cinder.Database;
+import dev.horizon.spectrum.OpenFgaException;
 import dev.horizon.spectrum.openfga.v1.Assertion;
+import dev.horizon.spectrum.openfga.v1.Assertions;
+import dev.horizon.spectrum.openfga.v1.InternalErrorCode;
+import dev.horizon.spectrum.schema.v1.Tables;
 import io.vertx.core.Future;
 import java.util.List;
 
 /**
  * Reads and writes the assertions of the authorization models of a store: the checks that a model is expected to
- * answer.
+ * answer. A model has one row, which holds all its assertions as one serialized message.
+ *
+ * @param database the database of the {@code assertion} table
  */
-public interface AssertionsBackend {
+public record AssertionsBackend(Database database)
+    implements Backend<Tables.Assertion, AuthorizationModelBackend.Key> {
+
+  @Override
+  public Class<Tables.Assertion> type() {
+    return Tables.Assertion.class;
+  }
 
   /**
    * Writes the assertions of a model, in place of those it had.
@@ -18,7 +34,12 @@ public interface AssertionsBackend {
    * @param assertions the assertions, or none to clear them
    * @return a future that completes when the assertions are stored
    */
-  Future<Void> write(String store, String modelId, List<Assertion> assertions);
+  public Future<Void> write(String store, String modelId, List<Assertion> assertions) {
+    return insert().values(Tables.Assertion.newBuilder().setStore(store)
+        .setAuthorizationModelId(modelId).setAssertions(Assertions.newBuilder().addAllAssertions(assertions).build()
+            .toByteString())
+        .build()).onConflict(Conflict.merge()).execute().mapEmpty();
+  }
 
   /**
    * Reads the assertions of a model.
@@ -27,5 +48,14 @@ public interface AssertionsBackend {
    * @param modelId the ID of the model
    * @return the assertions, in the order they were written, or none if the model has none
    */
-  Future<List<Assertion>> read(String store, String modelId);
+  public Future<List<Assertion>> read(String store, String modelId) {
+    return findById(new AuthorizationModelBackend.Key(store, modelId)).map(found -> found.map(row -> {
+      try {
+        return Assertions.parseFrom(row.getAssertions()).getAssertionsList();
+      } catch (InvalidProtocolBufferException corrupt) {
+        throw new OpenFgaException(InternalErrorCode.internal_error, "stored assertions are corrupt: "
+            + corrupt.getMessage());
+      }
+    }).orElse(List.of()));
+  }
 }

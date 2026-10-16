@@ -2,7 +2,9 @@ package dev.horizon.spectrum;
 
 import com.google.protobuf.Descriptors;
 import dev.horizon.aquery.aip158.PageTokenCodec;
-import dev.horizon.basepoint.Dialect;
+import dev.horizon.cinder.Database;
+import dev.horizon.cinder.Driver;
+import dev.horizon.cinder.protobuf.ProtobufExtension;
 import dev.horizon.spectrum.handler.BatchCheckHandler;
 import dev.horizon.spectrum.handler.CheckHandler;
 import dev.horizon.spectrum.handler.CreateStoreHandler;
@@ -29,15 +31,10 @@ import dev.horizon.spectrum.model.TypeSystemResolver;
 import dev.horizon.spectrum.openfga.v1.OpenfgaServiceProto;
 import dev.horizon.spectrum.storage.AssertionsBackend;
 import dev.horizon.spectrum.storage.AuthorizationModelBackend;
+import dev.horizon.spectrum.storage.ChangelogBackend;
 import dev.horizon.spectrum.storage.StoresBackend;
 import dev.horizon.spectrum.storage.TupleBackend;
-import dev.horizon.spectrum.storage.sql.SqlAssertionsBackend;
-import dev.horizon.spectrum.storage.sql.SqlAuthorizationModelBackend;
-import dev.horizon.spectrum.storage.sql.SqlChangelogBackend;
-import dev.horizon.spectrum.storage.sql.SqlDatabase;
-import dev.horizon.spectrum.storage.sql.SqlStoresBackend;
-import dev.horizon.spectrum.storage.sql.SqlTupleBackend;
-import dev.horizon.spectrum.storage.sql.SqlTypes;
+import dev.horizon.spectrum.storage.TupleRows;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.grpc.common.ServiceMethod;
@@ -62,12 +59,15 @@ public final class OpenFgaServiceImpl implements OpenFgaService {
   private final List<ServiceMethod<?, ?>> methods = new ArrayList<>();
   private final Map<String, Handler<?>> handlers = new HashMap<>();
 
-  public OpenFgaServiceImpl(Vertx vertx, Pool pool, Dialect dialect, OpenFgaServiceOptions options) {
-    SqlDatabase database = new SqlDatabase(pool, dialect, SqlTypes.of(dialect), Clock.systemUTC());
-    StoresBackend stores = new SqlStoresBackend(database);
-    AuthorizationModelBackend models = new SqlAuthorizationModelBackend(database);
-    TupleBackend tuples = new SqlTupleBackend(database);
-    AssertionsBackend assertions = new SqlAssertionsBackend(database);
+  public OpenFgaServiceImpl(Vertx vertx, Pool pool, Driver driver, OpenFgaServiceOptions options) {
+    Database database = Database.builder(pool, driver).extension(new ProtobufExtension())
+        .pageTokenKey(options.pageTokenKey()).build();
+    TupleRows rows = new TupleRows();
+    ChangelogBackend changelog = new ChangelogBackend(database, rows);
+    StoresBackend stores = new StoresBackend(database, Clock.systemUTC());
+    AuthorizationModelBackend models = new AuthorizationModelBackend(database);
+    TupleBackend tuples = new TupleBackend(database, changelog, rows);
+    AssertionsBackend assertions = new AssertionsBackend(database);
     PageTokenCodec tokens = new PageTokenCodec(options.pageTokenKey());
     TypeSystemResolver resolver = new TypeSystemResolver(models);
     CheckHandler check = new CheckHandler(resolver, tuples, options);
@@ -82,7 +82,7 @@ public final class OpenFgaServiceImpl implements OpenFgaService {
     bind(ReadAuthorizationModelsHandler.SERVICE_METHOD, new ReadAuthorizationModelsHandler(models, tokens));
     bind(WriteHandler.SERVICE_METHOD, new WriteHandler(resolver, tuples, options));
     bind(ReadHandler.SERVICE_METHOD, new ReadHandler(tuples, tokens));
-    bind(ReadChangesHandler.SERVICE_METHOD, new ReadChangesHandler(new SqlChangelogBackend(database), tokens));
+    bind(ReadChangesHandler.SERVICE_METHOD, new ReadChangesHandler(changelog, tokens));
     bind(WriteAssertionsHandler.SERVICE_METHOD, new WriteAssertionsHandler(resolver, assertions));
     bind(ReadAssertionsHandler.SERVICE_METHOD, new ReadAssertionsHandler(resolver, assertions));
     bind(CheckHandler.SERVICE_METHOD, check);

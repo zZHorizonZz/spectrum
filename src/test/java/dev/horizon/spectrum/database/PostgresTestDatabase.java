@@ -1,8 +1,7 @@
 package dev.horizon.spectrum.database;
 
-import dev.horizon.aquery.ParameterStyle;
-import dev.horizon.basepoint.Dialect;
-import dev.horizon.basepoint.postgres.PostgresDialect;
+import dev.horizon.cinder.Driver;
+import dev.horizon.cinder.postgres.PostgresDriver;
 import io.vertx.core.Vertx;
 import io.vertx.pgclient.PgBuilder;
 import io.vertx.pgclient.PgConnectOptions;
@@ -31,8 +30,8 @@ public final class PostgresTestDatabase implements TestDatabase {
   }
 
   @Override
-  public Dialect dialect() {
-    return new PostgresDialect(ParameterStyle.DOLLAR);
+  public Driver driver() {
+    return new PostgresDriver();
   }
 
   @Override

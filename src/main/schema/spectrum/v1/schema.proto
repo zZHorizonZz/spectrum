@@ -5,8 +5,8 @@ package spectrum.v1;
 import "google/protobuf/timestamp.proto";
 import "leadseal/v1/options.proto";
 
-option java_multiple_files = true;
-option java_outer_classname = "SchemaProto";
+option java_multiple_files = false;
+option java_outer_classname = "Tables";
 option java_package = "dev.horizon.spectrum.schema.v1";
 
 // A store. Deleting a store sets `deleted_at` and keeps its rows.

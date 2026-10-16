@@ -47,6 +47,7 @@
     <openfga-language.version>0.2.1</openfga-language.version>
     <aquery.version>0.3.1-SNAPSHOT</aquery.version>
     <basepoint.version>0.1.1-SNAPSHOT</basepoint.version>
+    <cinder.version>0.1.0-SNAPSHOT</cinder.version>
     <leadseal.version>0.2.0</leadseal.version>
     <vertx.version>5.2.0</vertx.version>
     <protobuf.version>4.36.2</protobuf.version>
@@ -129,7 +130,16 @@
       <groupId>dev.horizon</groupId>
       <artifactId>leadseal-protobuf</artifactId>
       <version>${leadseal.version}</version>
-      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>dev.horizon</groupId>
+      <artifactId>cinder-database</artifactId>
+      <version>${cinder.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dev.horizon</groupId>
+      <artifactId>cinder-protobuf</artifactId>
+      <version>${cinder.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
@@ -198,26 +208,26 @@
     </dependency>
     <dependency>
       <groupId>dev.horizon</groupId>
-      <artifactId>basepoint-dialect-postgres</artifactId>
-      <version>${basepoint.version}</version>
+      <artifactId>cinder-database-postgres</artifactId>
+      <version>${cinder.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dev.horizon</groupId>
-      <artifactId>basepoint-dialect-mariadb</artifactId>
-      <version>${basepoint.version}</version>
+      <artifactId>cinder-database-mariadb</artifactId>
+      <version>${cinder.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dev.horizon</groupId>
-      <artifactId>basepoint-dialect-sqlserver</artifactId>
-      <version>${basepoint.version}</version>
+      <artifactId>cinder-database-sqlserver</artifactId>
+      <version>${cinder.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dev.horizon</groupId>
-      <artifactId>basepoint-dialect-sqlite</artifactId>
-      <version>${basepoint.version}</version>
+      <artifactId>cinder-database-sqlite</artifactId>
+      <version>${cinder.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -382,7 +392,6 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <javaEnabled>false</javaEnabled>
               <sourceDirectories>
                 <sourceDirectory>${project.basedir}/src/main/schema</sourceDirectory>
               </sourceDirectories>
