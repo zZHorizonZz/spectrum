@@ -27,7 +27,7 @@ Add Spectrum, the Cinder driver and Vert.x client of your database, and the Vert
 <dependency>
   <groupId>dev.horizon</groupId>
   <artifactId>cinder-database-postgres</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 <dependency>
   <groupId>io.vertx</groupId>
