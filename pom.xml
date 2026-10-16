@@ -138,7 +138,7 @@
     </dependency>
     <dependency>
       <groupId>dev.horizon</groupId>
-      <artifactId>cinder-protobuf</artifactId>
+      <artifactId>cinder-extension-protobuf</artifactId>
       <version>${cinder.version}</version>
     </dependency>
     <dependency>
