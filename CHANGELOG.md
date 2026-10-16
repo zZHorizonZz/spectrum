@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.0](https://github.com/zZHorizonZz/spectrum/compare/v0.1.0...v0.2.0) (2026-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* OpenFgaService.create takes the Cinder Driver of the database, such as new PostgresDriver(), in place of a Basepoint Dialect.
+
+### Refactoring
+
+* read and write the tables through Cinder backends. ([7d6e85f](https://github.com/zZHorizonZz/spectrum/commit/7d6e85fbbb2ecc6acc3b69dc04af4b1ff696f9f5))
+
 ## 0.1.0 (2026-10-15)
 
 
