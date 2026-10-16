@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Int32Value;
@@ -15,6 +16,7 @@ import dev.horizon.spectrum.openfga.v1.WriteRequestWrites;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,19 +49,20 @@ class TuplesTest {
   private TestStore store;
 
   @BeforeEach
-  void open(Spectrum spectrum) {
+  void open(Spectrum spectrum) throws TimeoutException {
     this.spectrum = spectrum;
     this.fga = spectrum.client();
     this.store = spectrum.store(Documents.MODEL);
   }
 
-  private List<String> read(String object, String relation, String user) {
+  private List<String> read(String object, String relation, String user) throws TimeoutException {
     ReadRequest.Builder request = ReadRequest.newBuilder().setStoreId(store.id());
     if (object != null) {
       request.setTupleKey(ReadRequestTupleKey.newBuilder().setObject(object).setRelation(relation == null ? ""
           : relation).setUser(user == null ? "" : user));
     }
-    return fga.read(request.build()).await().getTuplesList().stream().map(tuple -> spectrum.text(tuple.getKey()))
+    return fga.read(request.build()).await(TIMEOUT).getTuplesList().stream()
+        .map(tuple -> spectrum.text(tuple.getKey()))
         .sorted().toList();
   }
 
@@ -91,14 +94,14 @@ class TuplesTest {
       doc:      |        | user:anne        | doc:1#owner@user:anne doc:1#viewer@user:anne
       doc:      | viewer | group:eng#member | doc:1#viewer@group:eng#member
       """)
-  void readsTheTuplesThatAFilterSelects(String object, String relation, String user, String tuples) {
+  void readsTheTuplesThatAFilterSelects(String object, String relation, String user, String tuples) throws TimeoutException {
     store.write("doc:1#viewer@user:anne", "doc:1#owner@user:anne", "doc:1#viewer@group:eng#member",
         "doc:2#viewer@user:beth", "folder:1#viewer@user:anne");
     assertThat(read(object, relation, user)).containsExactly(tuples.split(" "));
   }
 
   @Test
-  void readsTheTuplesPageByPage() {
+  void readsTheTuplesPageByPage() throws TimeoutException {
     List<TupleKey> written = IntStream.range(0, 5).mapToObj(i -> spectrum.tuple("doc:" + i + "#viewer@user:anne"))
         .toList();
     store.write(written);
@@ -106,7 +109,7 @@ class TuplesTest {
     String token = "";
     do {
       ReadResponse page = fga.read(ReadRequest.newBuilder().setStoreId(store.id()).setPageSize(Int32Value.of(2))
-          .setContinuationToken(token).build()).await();
+          .setContinuationToken(token).build()).await(TIMEOUT);
       page.getTuplesList().forEach(tuple -> read.add(tuple.getKey()));
       token = page.getContinuationToken();
     } while (!token.isEmpty());
@@ -114,10 +117,10 @@ class TuplesTest {
   }
 
   @Test
-  void deletesTuplesAndWritesOthersInOneRequest() {
+  void deletesTuplesAndWritesOthersInOneRequest() throws TimeoutException {
     store.write("doc:1#viewer@user:anne");
     fga.write(request().setDeletes(deletes("", "doc:1#viewer@user:anne")).setWrites(writes("",
-        "doc:1#viewer@user:beth")).build()).await();
+        "doc:1#viewer@user:beth")).build()).await(TIMEOUT);
     assertThat(read("doc:1", "", "")).containsExactly("doc:1#viewer@user:beth");
   }
 
@@ -127,12 +130,12 @@ class TuplesTest {
       error  | false
              | false
       """)
-  void writesATupleThatTheStoreHasByTheDuplicatePolicy(String policy, boolean succeeds) {
+  void writesATupleThatTheStoreHasByTheDuplicatePolicy(String policy, boolean succeeds) throws TimeoutException {
     store.write("doc:1#viewer@user:anne");
     WriteRequest request = request().setWrites(writes(policy == null ? "" : policy, "doc:1#viewer@user:anne",
         "doc:2#viewer@user:anne")).build();
     if (succeeds) {
-      fga.write(request).await();
+      fga.write(request).await(TIMEOUT);
       assertThat(read(null, null, null)).containsExactly("doc:1#viewer@user:anne", "doc:2#viewer@user:anne");
     } else {
       spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.write(request));
@@ -146,12 +149,12 @@ class TuplesTest {
       error  | false
              | false
       """)
-  void deletesATupleThatTheStoreDoesNotHaveByTheMissingPolicy(String policy, boolean succeeds) {
+  void deletesATupleThatTheStoreDoesNotHaveByTheMissingPolicy(String policy, boolean succeeds) throws TimeoutException {
     store.write("doc:1#viewer@user:anne");
     WriteRequest request = request().setDeletes(deletes(policy == null ? "" : policy, "doc:1#viewer@user:anne",
         "doc:2#viewer@user:anne")).build();
     if (succeeds) {
-      fga.write(request).await();
+      fga.write(request).await(TIMEOUT);
       assertThat(read(null, null, null)).isEmpty();
     } else {
       spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.write(request));
@@ -166,7 +169,7 @@ class TuplesTest {
   }
 
   @Test
-  void refusesMoreTuplesThanTheLimit() {
+  void refusesMoreTuplesThanTheLimit() throws TimeoutException {
     fga = spectrum.serve(new OpenFgaServiceOptions().withMaxTuplesPerWrite(1));
     spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.write(request().setWrites(writes("",
         "doc:1#viewer@user:anne", "doc:2#viewer@user:anne")).build()));
@@ -181,7 +184,7 @@ class TuplesTest {
       "doc:1#owner@user:*",
       "doc:1#parent@folder:1#viewer",
       "group:1#member@group:1#member" })
-  void refusesATupleThatTheModelDoesNotAllow(String tuple) {
+  void refusesATupleThatTheModelDoesNotAllow(String tuple) throws TimeoutException {
     spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.write(request().setWrites(writes("", tuple))
         .build()));
     assertThat(read(null, null, null)).isEmpty();
@@ -193,16 +196,16 @@ class TuplesTest {
   }
 
   @Test
-  void readsTheConditionOfATuple() {
+  void readsTheConditionOfATuple() throws TimeoutException {
     TestStore conditional = spectrum.store(CONDITIONS);
     TupleKey tuple = spectrum.tuple("doc:1#viewer@user:anne", "in_network", "{\"network\": \"10.0.0.0/8\"}");
     conditional.write(List.of(tuple));
-    assertThat(fga.read(ReadRequest.newBuilder().setStoreId(conditional.id()).build()).await().getTuples(0)
+    assertThat(fga.read(ReadRequest.newBuilder().setStoreId(conditional.id()).build()).await(TIMEOUT).getTuples(0)
         .getKey()).isEqualTo(tuple);
   }
 
   @Test
-  void refusesAWriteOfAStoredTupleWithAnotherCondition() {
+  void refusesAWriteOfAStoredTupleWithAnotherCondition() throws TimeoutException {
     TestStore conditional = spectrum.store(CONDITIONS);
     conditional.write("doc:1#viewer@user:anne");
     spectrum.assertStatus(GrpcStatus.ABORTED, () -> fga.write(WriteRequest.newBuilder().setStoreId(conditional.id())
@@ -218,7 +221,7 @@ class TuplesTest {
       doc:1#viewer@user:anne | in_network | {"network": 5}
       doc:1#viewer@user:anne | in_network | {"region": "eu"}
       """)
-  void refusesAConditionThatTheModelDoesNotAllow(String tuple, String condition, String context) {
+  void refusesAConditionThatTheModelDoesNotAllow(String tuple, String condition, String context) throws TimeoutException {
     TestStore conditional = spectrum.store(CONDITIONS);
     spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.write(WriteRequest.newBuilder()
         .setStoreId(conditional.id()).setWrites(WriteRequestWrites.newBuilder().addTupleKeys(spectrum.tuple(tuple,

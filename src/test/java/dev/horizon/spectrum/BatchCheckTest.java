@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.horizon.spectrum.openfga.v1.BatchCheckItem;
@@ -9,6 +10,7 @@ import dev.horizon.spectrum.openfga.v1.CheckRequestTupleKey;
 import dev.horizon.spectrum.openfga.v1.ErrorCode;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
 import io.vertx.grpc.common.GrpcStatus;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +22,7 @@ class BatchCheckTest {
   private TestStore store;
 
   @BeforeEach
-  void open(Spectrum spectrum) {
+  void open(Spectrum spectrum) throws TimeoutException {
     this.spectrum = spectrum;
     this.fga = spectrum.client();
     this.store = spectrum.documents();
@@ -32,11 +34,11 @@ class BatchCheckTest {
   }
 
   @Test
-  void checksABatch() {
+  void checksABatch() throws TimeoutException {
     BatchCheckResponse response = fga.batchCheck(BatchCheckRequest.newBuilder().setStoreId(store.id())
         .addChecks(item("anne", "user:anne", "viewer", "doc:plan"))
         .addChecks(item("beth", "user:beth", "reader", "doc:plan"))
-        .addChecks(item("unknown", "user:anne", "viewer", "document:1")).build()).await();
+        .addChecks(item("unknown", "user:anne", "viewer", "document:1")).build()).await(TIMEOUT);
     assertThat(response.getResultMap().get("anne").getAllowed()).isTrue();
     assertThat(response.getResultMap().get("beth").getAllowed()).isFalse();
     assertThat(response.getResultMap().get("unknown").getError().getInputError()).isEqualTo(
@@ -51,7 +53,7 @@ class BatchCheckTest {
   }
 
   @Test
-  void refusesMoreChecksThanTheLimit() {
+  void refusesMoreChecksThanTheLimit() throws TimeoutException {
     fga = spectrum.serve(new OpenFgaServiceOptions().withMaxChecksPerBatchCheck(1));
     spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.batchCheck(BatchCheckRequest.newBuilder()
         .setStoreId(store.id()).addChecks(item("anne", "user:anne", "viewer", "doc:plan"))

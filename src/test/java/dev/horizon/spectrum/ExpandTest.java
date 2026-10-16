@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.horizon.spectrum.openfga.v1.ExpandRequest;
@@ -7,6 +8,7 @@ import dev.horizon.spectrum.openfga.v1.ExpandRequestTupleKey;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
 import dev.horizon.spectrum.openfga.v1.UsersetTree;
 import io.vertx.grpc.common.GrpcStatus;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +20,7 @@ class ExpandTest {
   private TestStore store;
 
   @BeforeEach
-  void open(Spectrum spectrum) {
+  void open(Spectrum spectrum) throws TimeoutException {
     this.spectrum = spectrum;
     this.fga = spectrum.client();
     this.store = spectrum.documents();
@@ -29,12 +31,12 @@ class ExpandTest {
         .setObject(object).setRelation(relation)).build();
   }
 
-  private UsersetTree.Node expand(String object, String relation) {
-    return fga.expand(request(object, relation)).await().getTree().getRoot();
+  private UsersetTree.Node expand(String object, String relation) throws TimeoutException {
+    return fga.expand(request(object, relation)).await(TIMEOUT).getTree().getRoot();
   }
 
   @Test
-  void expandsAUnionOneLevel() {
+  void expandsAUnionOneLevel() throws TimeoutException {
     UsersetTree.Node root = expand("doc:plan", "viewer");
     assertThat(root.getName()).isEqualTo("doc:plan#viewer");
     assertThat(root.getUnion().getNodesList()).extracting(UsersetTree.Node::getLeaf).containsExactly(
@@ -48,13 +50,13 @@ class ExpandTest {
   }
 
   @Test
-  void expandsTheUsersOfADirectRelation() {
+  void expandsTheUsersOfADirectRelation() throws TimeoutException {
     assertThat(expand("group:eng", "member").getLeaf().getUsers().getUsersList())
         .containsExactly("group:design#member", "user:anne");
   }
 
   @Test
-  void expandsAnExclusion() {
+  void expandsAnExclusion() throws TimeoutException {
     UsersetTree.Difference difference = expand("doc:plan", "reader").getDifference();
     assertThat(difference.getBase().getLeaf().getComputed().getUserset()).isEqualTo("doc:plan#viewer");
     assertThat(difference.getSubtract().getLeaf().getComputed().getUserset()).isEqualTo("doc:plan#blocked");

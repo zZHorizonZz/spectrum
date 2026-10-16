@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.horizon.spectrum.openfga.v1.Assertion;
@@ -9,6 +10,7 @@ import dev.horizon.spectrum.openfga.v1.ReadAssertionsRequest;
 import dev.horizon.spectrum.openfga.v1.WriteAssertionsRequest;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +22,7 @@ class AssertionsTest {
   private TestStore store;
 
   @BeforeEach
-  void open(Spectrum spectrum) {
+  void open(Spectrum spectrum) throws TimeoutException {
     this.spectrum = spectrum;
     this.fga = spectrum.client();
     this.store = spectrum.store(Documents.MODEL);
@@ -36,19 +38,19 @@ class AssertionsTest {
         .addAllAssertions(assertions).build();
   }
 
-  private List<Assertion> read() {
+  private List<Assertion> read() throws TimeoutException {
     return fga.readAssertions(ReadAssertionsRequest.newBuilder().setStoreId(store.id())
-        .setAuthorizationModelId(store.model()).build()).await().getAssertionsList();
+        .setAuthorizationModelId(store.model()).build()).await(TIMEOUT).getAssertionsList();
   }
 
   @Test
-  void readsTheAssertionsInPlaceOfThoseBefore() {
+  void readsTheAssertionsInPlaceOfThoseBefore() throws TimeoutException {
     assertThat(read()).isEmpty();
-    fga.writeAssertions(write(List.of(assertion("user:anne", "viewer", "doc:1", true)))).await();
+    fga.writeAssertions(write(List.of(assertion("user:anne", "viewer", "doc:1", true)))).await(TIMEOUT);
     List<Assertion> assertions = List.of(assertion("user:beth", "reader", "doc:1", false),
         assertion("user:anne", "viewer", "doc:2", true).toBuilder().addContextualTuples(spectrum.tuple(
             "doc:2#viewer@user:anne")).build());
-    fga.writeAssertions(write(assertions)).await();
+    fga.writeAssertions(write(assertions)).await(TIMEOUT);
     assertThat(read()).containsExactlyElementsOf(assertions);
   }
 

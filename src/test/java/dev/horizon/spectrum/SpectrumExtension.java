@@ -7,12 +7,14 @@ import dev.horizon.spectrum.database.SqlServerTestDatabase;
 import dev.horizon.spectrum.database.SqliteTestDatabase;
 import dev.horizon.spectrum.database.TestDatabase;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ClassTemplateInvocationContext;
 import org.junit.jupiter.api.extension.ClassTemplateInvocationContextProvider;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 final class SpectrumExtension implements ClassTemplateInvocationContextProvider {
@@ -57,8 +59,17 @@ final class SpectrumExtension implements ClassTemplateInvocationContextProvider 
     public Spectrum resolveParameter(ParameterContext parameter, ExtensionContext context) {
       RunningDatabase running = context.getRoot().getStore(NAMESPACE).computeIfAbsent(database.name(),
           name -> database.open(), RunningDatabase.class);
-      return context.getStore(NAMESPACE).computeIfAbsent(Spectrum.class, type -> new Spectrum(running),
+      return context.getStore(NAMESPACE).computeIfAbsent(Spectrum.class, type -> spectrum(running),
           Spectrum.class);
+    }
+
+    private static Spectrum spectrum(RunningDatabase running) {
+      try {
+        return new Spectrum(running);
+      } catch (TimeoutException timedOut) {
+        throw new ParameterResolutionException("The database did not empty in " + RunningDatabase.TIMEOUT
+            .toSeconds() + " s", timedOut);
+      }
     }
   }
 }

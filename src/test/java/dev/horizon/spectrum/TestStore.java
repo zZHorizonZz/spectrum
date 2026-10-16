@@ -1,9 +1,12 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
+
 import dev.horizon.spectrum.openfga.v1.TupleKey;
 import dev.horizon.spectrum.openfga.v1.WriteRequest;
 import dev.horizon.spectrum.openfga.v1.WriteRequestWrites;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 final class TestStore {
@@ -25,17 +28,18 @@ final class TestStore {
     return model;
   }
 
-  String writeModel(String dsl) {
-    model = spectrum.client().writeAuthorizationModel(spectrum.model(id, dsl)).await().getAuthorizationModelId();
+  String writeModel(String dsl) throws TimeoutException {
+    model = spectrum.client().writeAuthorizationModel(spectrum.model(id, dsl)).await(TIMEOUT)
+        .getAuthorizationModelId();
     return model;
   }
 
-  void write(String... tuples) {
+  void write(String... tuples) throws TimeoutException {
     write(Stream.of(tuples).map(spectrum::tuple).toList());
   }
 
-  void write(List<TupleKey> tuples) {
+  void write(List<TupleKey> tuples) throws TimeoutException {
     spectrum.client().write(WriteRequest.newBuilder().setStoreId(id).setWrites(WriteRequestWrites.newBuilder()
-        .addAllTupleKeys(tuples)).build()).await();
+        .addAllTupleKeys(tuples)).build()).await(TIMEOUT);
   }
 }

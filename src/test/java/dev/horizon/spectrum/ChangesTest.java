@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Int32Value;
@@ -16,6 +17,7 @@ import io.vertx.grpc.common.GrpcStatus;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +31,7 @@ class ChangesTest {
   private TestStore store;
 
   @BeforeEach
-  void open(Spectrum spectrum) {
+  void open(Spectrum spectrum) throws TimeoutException {
     this.spectrum = spectrum;
     this.fga = spectrum.client();
     this.store = spectrum.store(Documents.MODEL);
@@ -37,12 +39,12 @@ class ChangesTest {
     fga.write(WriteRequest.newBuilder().setStoreId(store.id()).setDeletes(WriteRequestDeletes.newBuilder()
         .addTupleKeys(TupleKeyWithoutCondition.newBuilder().setObject("doc:1").setRelation("viewer")
             .setUser("user:anne")))
-        .build()).await();
+        .build()).await(TIMEOUT);
   }
 
-  private ReadChangesResponse changes(String type, String token) {
+  private ReadChangesResponse changes(String type, String token) throws TimeoutException {
     return fga.readChanges(ReadChangesRequest.newBuilder().setStoreId(store.id()).setType(type)
-        .setPageSize(Int32Value.of(2)).setContinuationToken(token).build()).await();
+        .setPageSize(Int32Value.of(2)).setContinuationToken(token).build()).await(TIMEOUT);
   }
 
   private String text(TupleChange change) {
@@ -50,7 +52,7 @@ class ChangesTest {
   }
 
   @Test
-  void readsTheChangesInTheOrderTheyCommitted() {
+  void readsTheChangesInTheOrderTheyCommitted() throws TimeoutException {
     List<String> read = new ArrayList<>();
     ReadChangesResponse page = changes("", "");
     page.getChangesList().forEach(change -> read.add(text(change)));
@@ -63,19 +65,19 @@ class ChangesTest {
   }
 
   @Test
-  void readsTheChangesOfAType() {
+  void readsTheChangesOfAType() throws TimeoutException {
     assertThat(changes("folder", "").getChangesList()).extracting(this::text)
         .containsExactly("TUPLE_OPERATION_WRITE folder:1#viewer@user:anne");
   }
 
   @Test
-  void readsTheChangesAfterAStartTime() {
-    spectrum.vertx().timer(MOMENT).await();
+  void readsTheChangesAfterAStartTime() throws TimeoutException {
+    spectrum.vertx().timer(MOMENT).await(TIMEOUT);
     Instant start = Instant.now();
-    spectrum.vertx().timer(MOMENT).await();
+    spectrum.vertx().timer(MOMENT).await(TIMEOUT);
     store.write("doc:2#viewer@user:beth");
     assertThat(fga.readChanges(ReadChangesRequest.newBuilder().setStoreId(store.id()).setStartTime(Timestamp
-        .newBuilder().setSeconds(start.getEpochSecond()).setNanos(start.getNano())).build()).await()
+        .newBuilder().setSeconds(start.getEpochSecond()).setNanos(start.getNano())).build()).await(TIMEOUT)
         .getChangesList()).extracting(this::text).containsExactly("TUPLE_OPERATION_WRITE doc:2#viewer@user:beth");
   }
 
@@ -88,14 +90,14 @@ class ChangesTest {
   }
 
   @Test
-  void timesEachChange() {
+  void timesEachChange() throws TimeoutException {
     assertThat(changes("", "").getChangesList()).allSatisfy(change -> assertThat(change.getTimestamp().getSeconds())
         .isPositive());
     assertThat(changes("", "").getChanges(0).getOperation()).isEqualTo(TupleOperation.TUPLE_OPERATION_WRITE);
   }
 
   @Test
-  void refusesATokenOfAnotherType() {
+  void refusesATokenOfAnotherType() throws TimeoutException {
     String token = changes("doc", "").getContinuationToken();
     spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.readChanges(ReadChangesRequest.newBuilder()
         .setStoreId(store.id()).setType("folder").setContinuationToken(token).build()));

@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Int32Value;
@@ -14,7 +15,7 @@ import dev.horizon.spectrum.openfga.v1.WriteAuthorizationModelRequest;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,7 +29,7 @@ class AuthorizationModelsTest {
   private TestStore store;
 
   @BeforeEach
-  void open(Spectrum spectrum) {
+  void open(Spectrum spectrum) throws TimeoutException {
     this.spectrum = spectrum;
     this.fga = spectrum.client();
     this.store = spectrum.store();
@@ -41,24 +42,27 @@ class AuthorizationModelsTest {
   }
 
   @Test
-  void readsAModelAsItWasWritten() {
+  void readsAModelAsItWasWritten() throws TimeoutException {
     WriteAuthorizationModelRequest written = spectrum.model(store.id(), Documents.MODEL);
-    String id = fga.writeAuthorizationModel(written).await().getAuthorizationModelId();
+    String id = fga.writeAuthorizationModel(written).await(TIMEOUT).getAuthorizationModelId();
     AuthorizationModel read = fga.readAuthorizationModel(ReadAuthorizationModelRequest.newBuilder()
-        .setStoreId(store.id()).setId(id).build()).await().getAuthorizationModel();
+        .setStoreId(store.id()).setId(id).build()).await(TIMEOUT).getAuthorizationModel();
     assertThat(read.getId()).isEqualTo(id);
     assertThat(read.getSchemaVersion()).isEqualTo("1.1");
     assertThat(read.getTypeDefinitionsList()).isEqualTo(written.getTypeDefinitionsList());
   }
 
   @Test
-  void readsTheModelsPageByPageTheLatestFirst() {
-    List<String> ids = IntStream.range(0, 3).mapToObj(i -> store.writeModel(Documents.MODEL)).toList();
+  void readsTheModelsPageByPageTheLatestFirst() throws TimeoutException {
+    List<String> ids = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      ids.add(store.writeModel(Documents.MODEL));
+    }
     List<String> read = new ArrayList<>();
     String token = "";
     do {
       ReadAuthorizationModelsResponse page = fga.readAuthorizationModels(ReadAuthorizationModelsRequest.newBuilder()
-          .setStoreId(store.id()).setPageSize(Int32Value.of(2)).setContinuationToken(token).build()).await();
+          .setStoreId(store.id()).setPageSize(Int32Value.of(2)).setContinuationToken(token).build()).await(TIMEOUT);
       page.getAuthorizationModelsList().forEach(model -> read.add(model.getId()));
       token = page.getContinuationToken();
     } while (!token.isEmpty());
@@ -105,7 +109,7 @@ class AuthorizationModelsTest {
   }
 
   @Test
-  void refusesAModelWithMoreTypesThanTheLimit() {
+  void refusesAModelWithMoreTypesThanTheLimit() throws TimeoutException {
     fga = spectrum.serve(new OpenFgaServiceOptions().withMaxTypesPerAuthorizationModel(1));
     spectrum.assertStatus(GrpcStatus.INVALID_ARGUMENT, () -> fga.writeAuthorizationModel(spectrum.model(store.id(),
         Documents.MODEL)));

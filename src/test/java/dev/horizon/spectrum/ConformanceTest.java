@@ -1,8 +1,8 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.protobuf.TextFormat;
 import dev.horizon.spectrum.conformance.Assertion;
 import dev.horizon.spectrum.conformance.CheckAssertion;
 import dev.horizon.spectrum.conformance.ConformanceCase;
@@ -23,10 +23,11 @@ import dev.horizon.spectrum.openfga.v1.TupleKey;
 import dev.horizon.spectrum.openfga.v1.User;
 import dev.horizon.spectrum.openfga.v1.UserTypeFilter;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -81,7 +82,7 @@ class ConformanceTest {
       this.contextual = contextual;
     }
 
-    synchronized Ready stage(int index) {
+    synchronized Ready stage(int index) throws TimeoutException {
       Assumptions.assumeFalse(stages.stream().limit(index + 1L).anyMatch(Stage::usesInlineConditions),
           "inline $expression conditions are not supported");
       if (store == null) {
@@ -117,7 +118,7 @@ class ConformanceTest {
   }
 
   private <A extends Assertion> Stream<DynamicNode> suite(Function<Stage, List<A>> assertions,
-      BiConsumer<Ready, A> run) {
+      Verification<A> run) {
     return CASES.stream().flatMap(test -> Stream.of(false, true).flatMap(contextual -> {
       if (contextual && test.stages().size() > 1) {
         return Stream.empty();
@@ -133,13 +134,13 @@ class ConformanceTest {
   }
 
   private <A extends Assertion> DynamicNode stage(Run cases, int index, List<A> assertions,
-      BiConsumer<Ready, A> run) {
+      Verification<A> run) {
     return DynamicContainer.dynamicContainer("stage_" + index, IntStream.range(0, assertions.size())
-        .mapToObj(number -> DynamicTest.dynamicTest("assertion_" + number, () -> run.accept(cases.stage(index),
+        .mapToObj(number -> DynamicTest.dynamicTest("assertion_" + number, () -> run.verify(cases.stage(index),
             assertions.get(number)))));
   }
 
-  private void check(Ready ready, CheckAssertion assertion) {
+  private void check(Ready ready, CheckAssertion assertion) throws TimeoutException {
     CheckRequest request = CheckRequest.newBuilder().setStoreId(ready.store().id())
         .setAuthorizationModelId(ready.store().model()).setTupleKey(assertion.tuple())
         .setContextualTuples(ContextualTupleKeys.newBuilder().addAllTupleKeys(ready.contextualTuples(assertion)))
@@ -147,10 +148,11 @@ class ConformanceTest {
     if (failsWith(assertion, () -> fga.check(request))) {
       return;
     }
-    assertThat(fga.check(request).await().getAllowed()).as(assertion.toString()).isEqualTo(assertion.expectation());
+    assertThat(fga.check(request).await(TIMEOUT).getAllowed()).as(assertion.toString())
+        .isEqualTo(assertion.expectation());
   }
 
-  private void listObjects(Ready ready, ListObjectsAssertion assertion) {
+  private void listObjects(Ready ready, ListObjectsAssertion assertion) throws TimeoutException {
     List<TupleKey> contextual = ready.contextualTuples(assertion);
     ListObjectsRequest request = ListObjectsRequest.newBuilder().setStoreId(ready.store().id())
         .setAuthorizationModelId(ready.store().model()).setType(assertion.request().type())
@@ -161,23 +163,26 @@ class ConformanceTest {
         .setAuthorizationModelId(request.getAuthorizationModelId()).setType(request.getType())
         .setRelation(request.getRelation()).setUser(request.getUser())
         .setContextualTuples(request.getContextualTuples()).setContext(request.getContext()).build();
-    Supplier<Future<List<String>>> stream = () -> Spectrum.deadline(fga.streamedListObjects(streamed)
-        .compose(objects -> objects.collect(Collectors.mapping(StreamedListObjectsResponse::getObject,
-            Collectors.toList()))),
-        "streamedListObjects " + TextFormat.shortDebugString(streamed));
+    Supplier<Future<List<String>>> stream = () -> {
+      Promise<List<String>> collected = Promise.promise();
+      spectrum.vertx().runOnContext(ignored -> fga.streamedListObjects(streamed).compose(objects -> objects
+          .collect(Collectors.mapping(StreamedListObjectsResponse::getObject, Collectors.toList())))
+          .onComplete(collected));
+      return collected.future();
+    };
     if (failsWith(assertion, () -> fga.listObjects(request))) {
       return;
     }
-    List<String> objects = fga.listObjects(request).await().getObjectsList();
+    List<String> objects = fga.listObjects(request).await(TIMEOUT).getObjectsList();
     assertThat(objects).as(assertion.toString()).containsExactlyInAnyOrderElementsOf(assertion.expectation());
-    assertThat(stream.get().await()).as(assertion.toString())
+    assertThat(stream.get().await(TIMEOUT)).as(assertion.toString())
         .containsExactlyInAnyOrderElementsOf(assertion.expectation());
     for (String object : objects) {
       assertAllowed(ready, assertion, contextual, object, request.getRelation(), request.getUser());
     }
   }
 
-  private void listUsers(Ready ready, ListUsersAssertion assertion) {
+  private void listUsers(Ready ready, ListUsersAssertion assertion) throws TimeoutException {
     String object = assertion.request().object();
     int colon = object.indexOf(':');
     List<TupleKey> contextual = ready.contextualTuples(assertion);
@@ -194,7 +199,8 @@ class ConformanceTest {
     if (failsWith(assertion, () -> fga.listUsers(request.build()))) {
       return;
     }
-    List<String> users = fga.listUsers(request.build()).await().getUsersList().stream().map(this::text).toList();
+    List<String> users = fga.listUsers(request.build()).await(TIMEOUT).getUsersList().stream().map(this::text)
+        .toList();
     assertThat(users).as(assertion.toString()).containsExactlyInAnyOrderElementsOf(assertion.expectation());
     for (String user : users) {
       assertAllowed(ready, assertion, contextual, object, request.getRelation(), user);
@@ -202,12 +208,13 @@ class ConformanceTest {
   }
 
   private void assertAllowed(Ready ready, Assertion assertion, List<TupleKey> contextual, String object,
-      String relation, String user) {
+      String relation, String user) throws TimeoutException {
     assertThat(fga.check(CheckRequest.newBuilder().setStoreId(ready.store().id())
         .setAuthorizationModelId(ready.store().model()).setTupleKey(CheckRequestTupleKey.newBuilder()
             .setObject(object).setRelation(relation).setUser(user))
         .setContextualTuples(ContextualTupleKeys.newBuilder().addAllTupleKeys(contextual))
-        .setContext(assertion.context()).build()).await().getAllowed()).as(object + "#" + relation + "@" + user)
+        .setContext(assertion.context()).build()).await(TIMEOUT).getAllowed())
+        .as(object + "#" + relation + "@" + user)
         .isTrue();
   }
 
@@ -233,5 +240,10 @@ class ConformanceTest {
           + user.getUserset().getRelation();
       default -> throw new IllegalArgumentException(user.toString());
     };
+  }
+
+  private interface Verification<A extends Assertion> {
+
+    void verify(Ready ready, A assertion) throws TimeoutException;
   }
 }

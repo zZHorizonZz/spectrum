@@ -1,5 +1,6 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Int32Value;
@@ -16,6 +17,7 @@ import dev.horizon.spectrum.openfga.v1.UpdateStoreRequest;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,16 +35,16 @@ class StoresTest {
     this.fga = spectrum.client();
   }
 
-  private CreateStoreResponse create(String name) {
-    return fga.createStore(CreateStoreRequest.newBuilder().setName(name).build()).await();
+  private CreateStoreResponse create(String name) throws TimeoutException {
+    return fga.createStore(CreateStoreRequest.newBuilder().setName(name).build()).await(TIMEOUT);
   }
 
-  private GetStoreResponse get(String id) {
-    return fga.getStore(GetStoreRequest.newBuilder().setStoreId(id).build()).await();
+  private GetStoreResponse get(String id) throws TimeoutException {
+    return fga.getStore(GetStoreRequest.newBuilder().setStoreId(id).build()).await(TIMEOUT);
   }
 
   @Test
-  void createsAndGetsAStore() {
+  void createsAndGetsAStore() throws TimeoutException {
     CreateStoreResponse created = create("documents");
     GetStoreResponse store = get(created.getId());
     assertThat(created.getId()).matches("[0-9A-HJKMNP-TV-Z]{26}");
@@ -52,13 +54,13 @@ class StoresTest {
   }
 
   @Test
-  void listsTheStoresPageByPage() {
+  void listsTheStoresPageByPage() throws TimeoutException {
     List<String> ids = List.of(create("first").getId(), create("second").getId(), create("third").getId());
     List<String> listed = new ArrayList<>();
     String token = "";
     do {
       ListStoresResponse page = fga.listStores(ListStoresRequest.newBuilder().setPageSize(Int32Value.of(2))
-          .setContinuationToken(token).build()).await();
+          .setContinuationToken(token).build()).await(TIMEOUT);
       page.getStoresList().forEach(store -> listed.add(store.getId()));
       token = page.getContinuationToken();
     } while (!token.isEmpty());
@@ -66,28 +68,29 @@ class StoresTest {
   }
 
   @Test
-  void listsTheStoresOfAName() {
+  void listsTheStoresOfAName() throws TimeoutException {
     create("first");
     String second = create("second").getId();
-    assertThat(fga.listStores(ListStoresRequest.newBuilder().setName("second").build()).await().getStoresList())
+    assertThat(
+        fga.listStores(ListStoresRequest.newBuilder().setName("second").build()).await(TIMEOUT).getStoresList())
         .extracting(Store::getId).containsExactly(second);
   }
 
   @Test
-  void renamesAStore() {
+  void renamesAStore() throws TimeoutException {
     String id = create("documents").getId();
-    fga.updateStore(UpdateStoreRequest.newBuilder().setStoreId(id).setName("records").build()).await();
+    fga.updateStore(UpdateStoreRequest.newBuilder().setStoreId(id).setName("records").build()).await(TIMEOUT);
     assertThat(get(id).getName()).isEqualTo("records");
   }
 
   @Test
-  void deletesAStore() {
+  void deletesAStore() throws TimeoutException {
     String id = create("documents").getId();
-    fga.deleteStore(DeleteStoreRequest.newBuilder().setStoreId(id).build()).await();
-    fga.deleteStore(DeleteStoreRequest.newBuilder().setStoreId(id).build()).await();
+    fga.deleteStore(DeleteStoreRequest.newBuilder().setStoreId(id).build()).await(TIMEOUT);
+    fga.deleteStore(DeleteStoreRequest.newBuilder().setStoreId(id).build()).await(TIMEOUT);
     spectrum.assertStatus(GrpcStatus.NOT_FOUND, () -> fga.getStore(GetStoreRequest.newBuilder().setStoreId(id)
         .build()));
-    assertThat(fga.listStores(ListStoresRequest.getDefaultInstance()).await().getStoresList()).isEmpty();
+    assertThat(fga.listStores(ListStoresRequest.getDefaultInstance()).await(TIMEOUT).getStoresList()).isEmpty();
     spectrum.assertStatus(GrpcStatus.NOT_FOUND, () -> fga.updateStore(UpdateStoreRequest.newBuilder().setStoreId(id)
         .setName("records").build()));
   }
