@@ -2,6 +2,7 @@ package dev.horizon.spectrum;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.protobuf.TextFormat;
 import dev.horizon.spectrum.conformance.Assertion;
 import dev.horizon.spectrum.conformance.CheckAssertion;
 import dev.horizon.spectrum.conformance.ConformanceCase;
@@ -160,8 +161,10 @@ class ConformanceTest {
         .setAuthorizationModelId(request.getAuthorizationModelId()).setType(request.getType())
         .setRelation(request.getRelation()).setUser(request.getUser())
         .setContextualTuples(request.getContextualTuples()).setContext(request.getContext()).build();
-    Supplier<Future<List<String>>> stream = () -> fga.streamedListObjects(streamed).compose(objects -> objects
-        .collect(Collectors.mapping(StreamedListObjectsResponse::getObject, Collectors.toList())));
+    Supplier<Future<List<String>>> stream = () -> Spectrum.deadline(fga.streamedListObjects(streamed)
+        .compose(objects -> objects.collect(Collectors.mapping(StreamedListObjectsResponse::getObject,
+            Collectors.toList()))),
+        "streamedListObjects " + TextFormat.shortDebugString(streamed));
     if (failsWith(assertion, () -> fga.listObjects(request))) {
       return;
     }
