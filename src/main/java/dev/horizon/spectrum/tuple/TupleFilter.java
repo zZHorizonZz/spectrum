@@ -63,6 +63,7 @@ public final class TupleFilter {
   /**
    * Tells if a tuple meets its condition.
    *
+   * @param tuple the tuple
    * @param context the context of the request
    * @return true if the tuple has no condition, or the context meets it
    * @throws OpenFgaException if the condition is not in the model or fails to evaluate

@@ -18,6 +18,8 @@ public record RelationshipTuple(TupleObject object, String relation, TupleUser u
   /**
    * Reads the tuple of a key: its user first, then its object.
    *
+   * @param key the key, with the condition of the tuple if it has one
+   * @return the tuple
    * @throws InvalidTupleException if the user or the object is malformed
    */
   public static RelationshipTuple parse(TupleKey key) {
@@ -26,12 +28,21 @@ public record RelationshipTuple(TupleObject object, String relation, TupleUser u
         key.hasCondition() ? Optional.of(key.getCondition()) : Optional.empty());
   }
 
-  /** Gives a tuple of the same object and user, with another relation and no condition. */
+  /**
+   * Gives a tuple of the same object and user, with another relation and no condition.
+   *
+   * @param other the relation, such as {@code editor}
+   * @return the tuple
+   */
   public RelationshipTuple withRelation(String other) {
     return new RelationshipTuple(object, other, user, Optional.empty());
   }
 
-  /** Gives the object, relation and user of the tuple, without its condition. */
+  /**
+   * Gives the ID of the tuple: its object, relation and user, without its condition.
+   *
+   * @return the ID
+   */
   public TupleId id() {
     return new TupleId(object.toString(), relation, user.toString());
   }

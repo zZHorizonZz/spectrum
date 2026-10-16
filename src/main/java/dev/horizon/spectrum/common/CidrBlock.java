@@ -33,6 +33,7 @@ public final class CidrBlock {
   /**
    * Tells if an address is in the block.
    *
+   * @param address the address
    * @return true if its leading bits are those of the network, false if not or it is of the other IP version
    */
   public boolean contains(IpAddress address) {

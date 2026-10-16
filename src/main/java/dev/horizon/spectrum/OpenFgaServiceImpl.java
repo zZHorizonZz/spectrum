@@ -50,6 +50,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The service on the SQL backends of a database: one handler per method of {@code openfga.v1.OpenFGAService}. Create it
+ * with {@link OpenFgaService#create}.
+ */
 public final class OpenFgaServiceImpl implements OpenFgaService {
 
   private static final Descriptors.ServiceDescriptor DESCRIPTOR = OpenfgaServiceProto.getDescriptor()

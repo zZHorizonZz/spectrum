@@ -2,6 +2,8 @@ package dev.horizon.spectrum.tuple;
 
 /**
  * A user that is every object of a type, such as {@code user:*}.
+ *
+ * @param type the type, such as {@code user}
  */
 public record WildcardUser(String type) implements TupleUser {
 

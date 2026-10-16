@@ -46,7 +46,11 @@ public final class TypeSystem {
     model.getConditionsMap().forEach((name, condition) -> conditions.put(name, new EvaluableCondition(condition)));
   }
 
-  /** Tells if the schema version of the model is 1.1 or 1.2, the versions that the service supports. */
+  /**
+   * Tells if the service supports the schema version of the model.
+   *
+   * @return true if the schema version is 1.1 or 1.2
+   */
   public boolean isSupported() {
     return SCHEMA_VERSION_1_1.equals(schemaVersion()) || SCHEMA_VERSION_1_2.equals(schemaVersion());
   }
@@ -55,10 +59,20 @@ public final class TypeSystem {
     return model;
   }
 
+  /**
+   * Gives the ID of the model.
+   *
+   * @return the ID, a ULID
+   */
   public String modelId() {
     return model.getId();
   }
 
+  /**
+   * Gives the schema version of the model.
+   *
+   * @return the version, such as {@code 1.1}
+   */
   public String schemaVersion() {
     return model.getSchemaVersion();
   }
@@ -67,6 +81,12 @@ public final class TypeSystem {
     return typeDefinitions;
   }
 
+  /**
+   * Gives the definition of a type.
+   *
+   * @param type the type, such as {@code doc}
+   * @return the definition, or empty if the model does not define the type
+   */
   public Optional<TypeDefinition> typeDefinition(String type) {
     return Optional.ofNullable(typeDefinitions.get(type));
   }
@@ -75,6 +95,13 @@ public final class TypeSystem {
     return Optional.ofNullable(relations.get(type));
   }
 
+  /**
+   * Gives a relation of a type, with its rewrite and its type restrictions.
+   *
+   * @param type the type, such as {@code doc}
+   * @param relation the relation, such as {@code viewer}
+   * @return the relation, or empty if the type is not in the model or does not define the relation
+   */
   public Optional<Relation> relation(String type, String relation) {
     return relations(type).map(typeRelations -> typeRelations.get(relation));
   }
@@ -88,17 +115,36 @@ public final class TypeSystem {
     return conditions;
   }
 
+  /**
+   * Gives a condition of the model.
+   *
+   * @param name the name of the condition
+   * @return the condition, or empty if the model does not define it
+   */
   public Optional<EvaluableCondition> condition(String name) {
     return Optional.ofNullable(conditions.get(name));
   }
 
-  /** Gives the type restrictions of a relation: the users that its tuples can name. */
+  /**
+   * Gives the type restrictions of a relation: the users that its tuples can name.
+   *
+   * @param type the type, such as {@code doc}
+   * @param relation the relation, such as {@code viewer}
+   * @return the restrictions, such as {@code user}, {@code user:*} or {@code group#member}, or none if the relation is
+   * not in the model
+   */
   public List<RelationReference> directlyRelatedUserTypes(String type, String relation) {
     return relation(type, relation).map(found -> found.getTypeInfo().getDirectlyRelatedUserTypesList())
         .orElse(List.of());
   }
 
-  /** Gives the type restrictions of a relation that are usersets, such as {@code group#member}. */
+  /**
+   * Gives the type restrictions of a relation that are usersets.
+   *
+   * @param type the type, such as {@code doc}
+   * @param relation the relation, such as {@code viewer}
+   * @return the restrictions, such as {@code group#member}, or none if the relation is not in the model
+   */
   public List<RelationReference> directlyRelatedUsersets(String type, String relation) {
     return directlyRelatedUserTypes(type, relation).stream().filter(reference -> !reference.getRelation().isEmpty())
         .toList();
@@ -109,24 +155,43 @@ public final class TypeSystem {
    *
    * @param target the relation, such as {@code doc#viewer}
    * @param source the user type, such as {@code user}, {@code user:*} or {@code group#member}
+   * @return true if a type restriction of the target is the source
    */
   public boolean isDirectlyRelated(RelationReference target, RelationReference source) {
     return directlyRelatedUserTypes(target.getType(), target.getRelation()).stream()
         .anyMatch(restriction -> equal(source, restriction));
   }
 
-  /** Tells if the target relation allows the typed wildcard of a type. */
+  /**
+   * Tells if the target relation allows the typed wildcard of a type.
+   *
+   * @param target the relation, such as {@code doc#viewer}
+   * @param type the type of the wildcard, such as {@code user}
+   * @return true if a type restriction of the target is the wildcard, such as {@code user:*}
+   */
   public boolean isPubliclyAssignable(RelationReference target, String type) {
     return directlyRelatedUserTypes(target.getType(), target.getRelation()).stream()
         .anyMatch(restriction -> restriction.getType().equals(type) && restriction.hasWildcard());
   }
 
-  /** Tells if a relation has type restrictions to check tuples against, as models of schema 1.1 do. */
+  /**
+   * Tells if a relation has type restrictions to check tuples against, as models of schema 1.1 and later do.
+   *
+   * @param type the type, such as {@code doc}
+   * @param relation the relation, such as {@code viewer}
+   * @return true if the schema version is supported and the type defines the relation
+   */
   public boolean hasTypeInfo(String type, String relation) {
     return isSupported() && relation(type, relation).isPresent();
   }
 
-  /** Tells if a relation is the tupleset of a tuple to userset rewrite of its type. */
+  /**
+   * Tells if a relation is the tupleset of a tuple to userset rewrite of its type.
+   *
+   * @param type the type, such as {@code doc}
+   * @param relation the relation, such as {@code parent}
+   * @return true if a rewrite of the type reads the objects that the tuples of the relation name
+   */
   public boolean isTuplesetRelation(String type, String relation) {
     return relations(type).orElse(Map.of()).values().stream()
         .anyMatch(other -> tuplesets(other.getRewrite()).contains(relation));
@@ -162,7 +227,13 @@ public final class TypeSystem {
     return !left.getRelation().isEmpty() && left.getRelation().equals(right.getRelation());
   }
 
-  /** Gives a reference to a type, or to a relation of a type when the relation is not empty. */
+  /**
+   * Gives a reference to a type, or to a relation of a type.
+   *
+   * @param type the type, such as {@code group}
+   * @param relation the relation, such as {@code member}, or empty for the type alone
+   * @return the reference, such as {@code group#member} or {@code group}
+   */
   public RelationReference directReference(String type, String relation) {
     RelationReference.Builder reference = RelationReference.newBuilder().setType(type);
     if (!relation.isEmpty()) {
@@ -171,6 +242,12 @@ public final class TypeSystem {
     return reference.build();
   }
 
+  /**
+   * Gives a reference to the typed wildcard of a type.
+   *
+   * @param type the type, such as {@code user}
+   * @return the reference, such as {@code user:*}
+   */
   public RelationReference wildcardReference(String type) {
     return RelationReference.newBuilder().setType(type).setWildcard(Wildcard.getDefaultInstance()).build();
   }

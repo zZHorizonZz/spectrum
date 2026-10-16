@@ -14,6 +14,8 @@ public interface ParameterType {
   /**
    * Gives the type of a type reference of a model.
    *
+   * @param reference the type reference of a parameter of a condition, such as {@code map<int>}
+   * @return the type, with the types of its elements for a map or a list
    * @throws IllegalArgumentException if the type is unknown, a map or a list does not have exactly one generic type, or
    * another type has one
    */
@@ -43,12 +45,18 @@ public interface ParameterType {
     };
   }
 
-  /** Gives the CEL type, such as {@code int} or {@code map(string, int)}. */
+  /**
+   * Gives the CEL type of the parameter, which the expression of a condition is compiled against.
+   *
+   * @return the type, such as {@code int} or {@code map(string, int)}
+   */
   CelType celType();
 
   /**
    * Turns a JSON value of a context into a CEL value of this type.
    *
+   * @param value the value of the parameter in the context
+   * @return the CEL value, such as a {@code Long} for an {@code int}
    * @throws IllegalArgumentException if the value is not one of this type
    */
   Object convert(Value value);

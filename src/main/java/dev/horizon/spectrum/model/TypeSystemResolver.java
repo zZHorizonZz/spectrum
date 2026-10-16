@@ -36,6 +36,7 @@ public final class TypeSystemResolver {
   /**
    * Gives the type system of a model.
    *
+   * @param store the ID of the store
    * @param modelId the model ID, or empty for the latest model of the store
    * @return the type system, or a future that fails with an {@link OpenFgaException} if the store has no such model
    */

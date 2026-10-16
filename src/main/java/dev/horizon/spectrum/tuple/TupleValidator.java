@@ -17,6 +17,12 @@ public abstract class TupleValidator {
     this.rules = List.copyOf(rules);
   }
 
+  /**
+   * Checks a tuple against every rule, in order.
+   *
+   * @param tuple the tuple
+   * @throws InvalidTupleException with the reason of the first rule that the tuple breaks
+   */
   public void validate(RelationshipTuple tuple) {
     rules.forEach(rule -> rule.check(tuple));
   }
@@ -24,6 +30,8 @@ public abstract class TupleValidator {
   /**
    * Reads a key and checks its tuple.
    *
+   * @param key the key of a request
+   * @return the tuple of the key
    * @throws OpenFgaException with the code {@code validation_error} if the key is malformed or its tuple breaks a rule
    */
   public RelationshipTuple validate(TupleKey key) {
@@ -37,6 +45,12 @@ public abstract class TupleValidator {
     }
   }
 
+  /**
+   * Tells if a tuple follows every rule.
+   *
+   * @param tuple the tuple
+   * @return true if the tuple breaks no rule
+   */
   public boolean isValid(RelationshipTuple tuple) {
     try {
       validate(tuple);

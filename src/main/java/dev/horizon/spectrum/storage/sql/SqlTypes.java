@@ -21,6 +21,7 @@ public interface SqlTypes {
   /**
    * Gives the types of the database of a dialect.
    *
+   * @param dialect the dialect, by whose name the types are picked
    * @return the types: those of PostgreSQL or SQLite for their dialects, and UTC local times for the others
    */
   static SqlTypes of(Dialect dialect) {
@@ -31,13 +32,28 @@ public interface SqlTypes {
     };
   }
 
+  /**
+   * Gives the value to bind to a binary column.
+   *
+   * @param bytes the bytes
+   * @return the bytes in the form that the client binds, such as a {@code Buffer} or a {@code byte[]}
+   */
   Object binary(byte[] bytes);
 
+  /**
+   * Gives the value to bind to a time column.
+   *
+   * @param instant the time
+   * @return the time in the form that the client binds, such as an {@code OffsetDateTime} or a UTC
+   * {@code LocalDateTime}
+   */
   Object time(Instant instant);
 
   /**
    * Reads a text column.
    *
+   * @param row the row
+   * @param column the name of the column
    * @return the text, or empty for a null
    */
   default String text(Row row, String column) {
@@ -48,7 +64,10 @@ public interface SqlTypes {
   /**
    * Reads a binary column.
    *
+   * @param row the row
+   * @param column the name of the column
    * @return the bytes, or null for a null
+   * @throws IllegalStateException if the column holds neither a {@code Buffer} nor a {@code byte[]}
    */
   default byte[] bytes(Row row, String column) {
     return switch (row.getValue(column)) {
@@ -63,7 +82,10 @@ public interface SqlTypes {
   /**
    * Reads a time column, which a database without time zones keeps in UTC and SQLite as ISO 8601 text.
    *
+   * @param row the row
+   * @param column the name of the column
    * @return the time, or the default timestamp for a null
+   * @throws IllegalStateException if the column holds no time
    */
   default Timestamp timestamp(Row row, String column) {
     Instant instant = switch (row.getValue(column)) {
@@ -81,6 +103,11 @@ public interface SqlTypes {
   /**
    * Reads a binary column that holds a message.
    *
+   * @param row the row
+   * @param column the name of the column
+   * @param parser the parser of the message
+   * @param <T> the type of the message
+   * @return the message
    * @throws OpenFgaException with the code {@code internal_error} if the bytes are not a message of the parser
    */
   default <T> T message(Row row, String column, Parser<T> parser) {

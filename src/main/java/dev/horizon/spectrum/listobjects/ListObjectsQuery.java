@@ -43,6 +43,16 @@ public final class ListObjectsQuery {
     this.options = options;
   }
 
+  /**
+   * The objects to list.
+   *
+   * @param store the ID of the store
+   * @param type the type of the objects, such as {@code doc}
+   * @param relation the relation that the user has to them, such as {@code viewer}
+   * @param user the user, such as {@code user:anne}, {@code user:*} or {@code group:eng#member}
+   * @param contextual the tuples that count as if the store had them
+   * @param context the context of the conditions, or the empty struct
+   */
   public record Request(String store, String type, String relation, String user, List<TupleKey> contextual,
       Struct context) {
   }
@@ -51,6 +61,8 @@ public final class ListObjectsQuery {
    * Lists the objects, up to the most results of the options.
    *
    * @param request the objects to list
+   * @param types the model to list them by
+   * @return the objects, such as {@code doc:1}, in the order the search found them
    * @throws OpenFgaException if the request does not fit the model
    */
   public Future<List<String>> list(Request request, TypeSystem types) {
@@ -86,7 +98,8 @@ public final class ListObjectsQuery {
    * response and end it there.
    *
    * @param request the objects to list
-   * @param found takes each object once
+   * @param types the model to list them by
+   * @param found takes each object once, such as {@code doc:1}
    * @return a future that completes when the search ends, at the deadline at the latest
    * @throws OpenFgaException if the request does not fit the model
    */

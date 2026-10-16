@@ -45,6 +45,7 @@ public final class LocalChecker {
   /**
    * Checks a tuple.
    *
+   * @param request the tuple to check, with the context of the request
    * @return the answer, or a future that fails with an {@link OpenFgaException} if the check goes deeper than the
    * resolution depth limit, or a condition fails to evaluate
    */

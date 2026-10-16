@@ -4,6 +4,9 @@ import com.google.protobuf.Value;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 
+/**
+ * The {@code string} parameter type: a JSON string.
+ */
 public final class StringParameterType extends JsonParameterType {
 
   @Override

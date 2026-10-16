@@ -7,6 +7,9 @@ import dev.cel.common.types.SimpleType;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * The {@code any} parameter type: a JSON value of any kind, as the CEL value of its kind.
+ */
 public final class AnyParameterType implements ParameterType {
 
   @Override

@@ -10,6 +10,12 @@ import java.util.Map;
  */
 public final class ContextValidator {
 
+  /**
+   * Checks a context.
+   *
+   * @param context the context of a condition
+   * @throws IllegalArgumentException if a key or a text has a control character
+   */
   public void validate(Struct context) {
     for (Map.Entry<String, Value> field : context.getFieldsMap().entrySet()) {
       if (forbidden(field.getKey())) {

@@ -43,6 +43,11 @@ public final class EvaluableCondition {
     this.condition = condition;
   }
 
+  /**
+   * Gives the name of the condition.
+   *
+   * @return the name that type restrictions and tuples refer to the condition by
+   */
   public String name() {
     return condition.getName();
   }

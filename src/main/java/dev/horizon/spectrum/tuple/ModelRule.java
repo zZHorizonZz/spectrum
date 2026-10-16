@@ -24,6 +24,7 @@ public final class ModelRule implements TupleRule {
   /**
    * Checks that the type of a user is in the model, and the relation of a userset.
    *
+   * @param user the user
    * @throws InvalidTupleException if one is not
    */
   public void checkUser(TupleUser user) {
@@ -36,6 +37,7 @@ public final class ModelRule implements TupleRule {
   /**
    * Checks that an object is not a typed wildcard, and that its type is in the model.
    *
+   * @param object the object
    * @throws InvalidTupleException if it is a typed wildcard or its type is not in the model
    */
   public void checkObject(TupleObject object) {
@@ -48,6 +50,8 @@ public final class ModelRule implements TupleRule {
   /**
    * Checks that a relation is well formed, and is a relation of the type of an object.
    *
+   * @param object the object, whose type must define the relation
+   * @param relation the relation
    * @throws InvalidTupleException if it is malformed or not in the model
    */
   public void checkRelation(TupleObject object, String relation) {

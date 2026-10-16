@@ -10,6 +10,7 @@ public abstract class JsonParameterType implements ParameterType {
   /**
    * Checks that a value is of a JSON kind.
    *
+   * @param value the value of the parameter
    * @param kind the kind it must be
    * @param type the name of this type, for the message
    * @throws IllegalArgumentException if the value is of another kind
@@ -20,7 +21,12 @@ public abstract class JsonParameterType implements ParameterType {
     }
   }
 
-  /** Gives the JSON kind of a value as a message names it: bool, float64, string, list, map or null. */
+  /**
+   * Names the JSON kind of a value, for a message.
+   *
+   * @param value the value of the parameter
+   * @return bool, float64, string, list, map or null
+   */
   protected String kind(Value value) {
     return switch (value.getKindCase()) {
       case BOOL_VALUE -> "bool";

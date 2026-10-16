@@ -2,6 +2,9 @@ package dev.horizon.spectrum.tuple;
 
 /**
  * A user that is every user with a relation to an object, such as {@code group:eng#member}.
+ *
+ * @param object the object, such as {@code group:eng}
+ * @param relation the relation, such as {@code member}
  */
 public record UsersetUser(TupleObject object, String relation) implements TupleUser {
 

@@ -13,6 +13,9 @@ import io.vertx.sqlclient.Row;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The changes of the {@code changelog} table, which a write of the {@link SqlTupleBackend} fills in its transaction.
+ */
 public final class SqlChangelogBackend implements ChangelogBackend {
 
   private static final String CHANGELOG = "spectrum_changelog";

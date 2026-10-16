@@ -39,10 +39,20 @@ public final class OpenFgaException extends RuntimeException {
     this.code = code;
   }
 
+  /**
+   * Gives the error code of a request that is not valid.
+   *
+   * @return the code if it is an {@link ErrorCode}, or empty if the failure is not found, internal or only a status
+   */
   public Optional<ErrorCode> inputError() {
     return code instanceof ErrorCode input ? Optional.of(input) : Optional.empty();
   }
 
+  /**
+   * Gives the failure as the status that ends a gRPC call.
+   *
+   * @return the status of the kind of the code, or the status that the failure was made with, and the message
+   */
   public StatusException toStatus() {
     return new StatusException(status, getMessage());
   }

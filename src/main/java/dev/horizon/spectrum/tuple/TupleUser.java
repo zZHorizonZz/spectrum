@@ -16,6 +16,7 @@ public sealed interface TupleUser permits ObjectUser, WildcardUser, UsersetUser 
    * Reads a user.
    *
    * @param text the user, such as {@code user:anne}, {@code user:*} or {@code group:eng#member}
+   * @return an {@link ObjectUser}, a {@link WildcardUser} or a {@link UsersetUser}
    * @throws InvalidTupleException if the text is malformed, or is an ID without a type
    */
   static TupleUser parse(String text) {
@@ -49,8 +50,17 @@ public sealed interface TupleUser permits ObjectUser, WildcardUser, UsersetUser 
     }
   }
 
+  /**
+   * Gives the type of the user.
+   *
+   * @return the type of the object, the wildcard or the object of the userset, such as {@code user} or {@code group}
+   */
   String type();
 
-  /** Gives the value of the {@code user_type} column of a tuple of this user: {@code user} or {@code userset}. */
+  /**
+   * Gives the value of the {@code user_type} column of a tuple of this user.
+   *
+   * @return {@link #USER} for an object, {@link #USERSET} for a typed wildcard or a userset
+   */
   String userType();
 }

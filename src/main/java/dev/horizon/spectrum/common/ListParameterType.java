@@ -4,6 +4,9 @@ import com.google.protobuf.Value;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.ListType;
 
+/**
+ * The {@code list} parameter type: a JSON array whose elements are of one type.
+ */
 public final class ListParameterType extends JsonParameterType {
 
   private final ParameterType elements;

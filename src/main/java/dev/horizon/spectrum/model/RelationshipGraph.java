@@ -26,6 +26,7 @@ public final class RelationshipGraph {
    *
    * @param target the relation, such as {@code doc#viewer}
    * @param source the user type: a type, a typed wildcard or a userset, such as {@code group#member}
+   * @return the edges, in the order of the rewrite, or none if the source cannot have the relation
    */
   public List<RelationshipEdge> prunedEdges(RelationReference target, RelationReference source) {
     return edges(target, source, new HashSet<>());

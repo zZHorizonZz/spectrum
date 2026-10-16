@@ -36,6 +36,7 @@ public final class ULID implements Comparable<ULID> {
   /**
    * Gives a ULID of the current time, greater than every ULID that this method gave before.
    *
+   * @return the ULID
    * @throws IllegalStateException if one millisecond had more ULIDs than 80 bits count
    */
   public static synchronized ULID randomULID() {
@@ -55,6 +56,7 @@ public final class ULID implements Comparable<ULID> {
   /**
    * Gives the least ULID of a time, which sorts before every ULID made at or after it.
    *
+   * @param instant the time, to the millisecond
    * @return the ULID, whose random bits are all zero
    */
   public static ULID startOf(Instant instant) {
@@ -65,6 +67,7 @@ public final class ULID implements Comparable<ULID> {
    * Reads a ULID from its text.
    *
    * @param text 26 characters of Crockford base 32, in either case
+   * @return the ULID
    * @throws IllegalArgumentException if the text is not a ULID
    */
   public static ULID fromString(String text) {
@@ -84,15 +87,29 @@ public final class ULID implements Comparable<ULID> {
     return new ULID(most, least);
   }
 
-  /** Gives the time of the ULID, in milliseconds since the epoch. */
+  /**
+   * Gives the time of the ULID.
+   *
+   * @return the time, in milliseconds since the epoch
+   */
   public long timestamp() {
     return mostSigBits >>> RANDOM_HIGH_BITS;
   }
 
+  /**
+   * Gives the most significant 64 bits of the ULID.
+   *
+   * @return the 48 bits of time, then the first 16 random bits
+   */
   public long getMostSignificantBits() {
     return mostSigBits;
   }
 
+  /**
+   * Gives the least significant 64 bits of the ULID.
+   *
+   * @return the last 64 random bits
+   */
   public long getLeastSignificantBits() {
     return leastSigBits;
   }

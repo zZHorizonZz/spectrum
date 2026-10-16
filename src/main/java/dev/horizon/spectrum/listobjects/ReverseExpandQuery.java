@@ -65,6 +65,7 @@ public final class ReverseExpandQuery {
   /**
    * Finds the objects.
    *
+   * @param store the ID of the store
    * @param objectType the type of the objects, such as {@code doc}
    * @param relation the relation, such as {@code viewer}
    * @param user the user, such as {@code user:anne}, {@code user:*} or {@code group:eng#member}

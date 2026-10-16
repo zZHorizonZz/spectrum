@@ -26,6 +26,14 @@ public final class TupleRows {
     this.types = types;
   }
 
+  /**
+   * Gives the row of a tuple.
+   *
+   * @param store the ID of the store
+   * @param key the tuple, with its condition if it has one
+   * @param ulid the ULID of the tuple
+   * @return the values, by column
+   */
   public Map<String, Object> tuple(String store, TupleKey key, String ulid) {
     Map<String, Object> row = key(store, new TupleId(key));
     row.put("user_type", TupleUser.parse(key.getUser()).userType());
@@ -36,6 +44,16 @@ public final class TupleRows {
     return row;
   }
 
+  /**
+   * Gives the row of a change.
+   *
+   * @param store the ID of the store
+   * @param key the tuple that changed
+   * @param condition the condition of the tuple, or empty
+   * @param operation whether the tuple was written or deleted
+   * @param ulid the ULID of the change
+   * @return the values, by column
+   */
   public Map<String, Object> change(String store, TupleId key, Optional<RelationshipCondition> condition,
       TupleOperation operation, String ulid) {
     Map<String, Object> row = key(store, key);
@@ -45,10 +63,22 @@ public final class TupleRows {
     return row;
   }
 
+  /**
+   * Reads a row of the {@code tuple} table.
+   *
+   * @param row the row
+   * @return the tuple, with its condition and the time it was written
+   */
   public Tuple tuple(Row row) {
     return Tuple.newBuilder().setKey(key(row)).setTimestamp(types.timestamp(row, "inserted_at")).build();
   }
 
+  /**
+   * Reads a row of the {@code changelog} table.
+   *
+   * @param row the row
+   * @return the change, with its operation and the time it was made
+   */
   public TupleChange change(Row row) {
     return TupleChange.newBuilder().setTupleKey(key(row))
         .setOperation(TupleOperation.forNumber(row.getInteger("operation")))

@@ -13,6 +13,7 @@ public record TupleObject(String type, String id) {
    * character.
    *
    * @param text the object, such as {@code doc:1}
+   * @return the object
    * @throws InvalidTupleException if the text is not an object
    */
   public static TupleObject parse(String text) {
@@ -24,6 +25,12 @@ public record TupleObject(String type, String id) {
     return new TupleObject(text.substring(0, colon), text.substring(colon + 1));
   }
 
+  /**
+   * Gives the userset of a relation of this object.
+   *
+   * @param relation the relation, such as {@code member}
+   * @return the userset, such as {@code group:eng#member}
+   */
   public UsersetUser userset(String relation) {
     return new UsersetUser(this, relation);
   }

@@ -14,6 +14,9 @@ import dev.horizon.spectrum.openfga.v1.RelationReference;
 public record RelationshipEdge(Type type, RelationReference target, String tuplesetRelation,
     boolean involvesIntersectionOrExclusion) {
 
+  /**
+   * How the tuples of an edge give the user the relation.
+   */
   public enum Type {
     /** A tuple of the relation names the user. */
     DIRECT,

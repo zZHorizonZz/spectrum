@@ -4,6 +4,9 @@ import com.google.protobuf.Value;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 
+/**
+ * The {@code int} parameter type: a whole number of 64 bits, as a JSON number or a string of one.
+ */
 public final class IntParameterType extends NumberParameterType {
 
   @Override

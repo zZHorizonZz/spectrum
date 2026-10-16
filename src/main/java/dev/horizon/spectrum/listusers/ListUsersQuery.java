@@ -305,6 +305,9 @@ public final class ListUsersQuery {
   /**
    * Lists the users, up to the most results of the options.
    *
+   * @param request the object, the relation, the user filters, the contextual tuples and the context
+   * @param types the model to list the users by
+   * @return the users, in the order the expansion found them
    * @throws OpenFgaException if the request does not fit the model
    */
   public Future<List<User>> list(ListUsersRequest request, TypeSystem types) {

@@ -26,6 +26,7 @@ public interface OpenFgaService extends Service {
    * @param vertx the Vert.x instance, for the deadlines of ListObjects and ListUsers
    * @param pool the pool that runs the statements
    * @param dialect the SQL of the database, with the placeholders that the pool takes
+   * @return the service, to add to a gRPC server
    */
   static OpenFgaService create(Vertx vertx, Pool pool, Dialect dialect) {
     return create(vertx, pool, dialect, new OpenFgaServiceOptions());
@@ -37,7 +38,8 @@ public interface OpenFgaService extends Service {
    * @param vertx the Vert.x instance, for the deadlines of ListObjects and ListUsers
    * @param pool the pool that runs the statements
    * @param dialect the SQL of the database, with the placeholders that the pool takes
-   * @param options the limits of the service
+   * @param options the limits of the service, and the key of its continuation tokens
+   * @return the service, to add to a gRPC server
    */
   static OpenFgaService create(Vertx vertx, Pool pool, Dialect dialect, OpenFgaServiceOptions options) {
     return new OpenFgaServiceImpl(vertx, pool, dialect, options);

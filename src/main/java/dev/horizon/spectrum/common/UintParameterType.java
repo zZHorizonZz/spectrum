@@ -6,6 +6,10 @@ import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 import java.math.BigDecimal;
 
+/**
+ * The {@code uint} parameter type: a whole number of 64 bits that is not negative, as a JSON number or a string of
+ * one.
+ */
 public final class UintParameterType extends NumberParameterType {
 
   @Override

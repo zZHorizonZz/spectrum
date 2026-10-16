@@ -9,6 +9,7 @@ import java.util.Set;
 /**
  * A check of one tuple in the tree of checks that answers a request.
  *
+ * @param store the ID of the store
  * @param tuple the tuple to check
  * @param context the context of the request
  * @param visited the tuples that the path to this check has checked, to find cycles
@@ -25,24 +26,42 @@ public record ResolveCheckRequest(String store, RelationshipTuple tuple, Struct 
     this(store, tuple, context, Set.of(), 0);
   }
 
-  /** Gives the check of another tuple on the same path, such as another relation of the same object. */
+  /**
+   * Gives the check of another tuple at the same depth, such as another relation of the same object.
+   *
+   * @param other the tuple to check
+   * @return the check, with the visited tuples and the depth of this one
+   */
   public ResolveCheckRequest rewritten(RelationshipTuple other) {
     return new ResolveCheckRequest(store, other, context, visited, depth);
   }
 
-  /** Gives the check of a tuple one level down, through a userset or a tupleset. */
+  /**
+   * Gives the check of a tuple one level down, through a userset or a tupleset.
+   *
+   * @param other the tuple to check
+   * @return the check, with the visited tuples of this one and a depth of one more
+   */
   public ResolveCheckRequest dispatched(RelationshipTuple other) {
     return new ResolveCheckRequest(store, other, context, visited, depth + 1);
   }
 
-  /** Gives this check with its tuple marked as visited. */
+  /**
+   * Marks the tuple of this check as visited, so that a path that comes back to it is a cycle.
+   *
+   * @return the check, with its tuple among the visited tuples
+   */
   public ResolveCheckRequest visiting() {
     Set<TupleId> path = new HashSet<>(visited);
     path.add(tuple.id());
     return new ResolveCheckRequest(store, tuple, context, path, depth);
   }
 
-  /** Tells if the path to this check has checked its tuple before. */
+  /**
+   * Tells if the path to this check has checked its tuple before.
+   *
+   * @return true if the tuple is among the visited tuples
+   */
   public boolean cycle() {
     return visited.contains(tuple.id());
   }

@@ -26,13 +26,17 @@ public interface TupleBackend extends TupleReader {
   /**
    * Reads a page of the tuples that a filter selects, in order of ULID.
    *
+   * @param store the ID of the store
+   * @param filter the object, relation and user of the tuples
    * @param page the page, whose cursor is the ULID of its first tuple
+   * @return the tuples of the page, with the token of the next page
    */
   Future<Page<Tuple>> readPage(String store, ReadFilter filter, PageQuery page);
 
   /**
-   * Deletes and writes tuples in one transaction.
+   * Deletes and writes tuples in one transaction, and records a change for each.
    *
+   * @param store the ID of the store
    * @param deletes the tuples to delete
    * @param writes the tuples to write
    * @param options what to do with missing deletes and duplicate writes

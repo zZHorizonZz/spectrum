@@ -33,23 +33,51 @@ public final class SqlDatabase {
     this.clock = clock;
   }
 
+  /**
+   * Gives a table, to build its statements on.
+   *
+   * @param name the name of the table, such as {@code spectrum_tuple}
+   * @return the table, in the SQL of the dialect
+   */
   public CollectionReference table(String name) {
     return dialect.collection(name);
   }
 
+  /**
+   * Gives the types of the database.
+   *
+   * @return the values that its client binds to binary and time columns, and reads from them
+   */
   public SqlTypes types() {
     return types;
   }
 
-  /** Gives the time now, to the millisecond that every database keeps. */
+  /**
+   * Gives the time now, to the millisecond that every database keeps.
+   *
+   * @return the time of the clock, without its microseconds
+   */
   public Instant now() {
     return clock.instant().truncatedTo(ChronoUnit.MILLIS);
   }
 
+  /**
+   * Runs a statement on the pool.
+   *
+   * @param statement the statement
+   * @return the rows, or a future that fails if the statement does not build or the database refuses it
+   */
   public Future<RowSet<Row>> run(Buildable statement) {
     return run(pool, statement);
   }
 
+  /**
+   * Runs a statement on a client, such as the connection of a transaction.
+   *
+   * @param client the client
+   * @param statement the statement
+   * @return the rows, or a future that fails if the statement does not build or the database refuses it
+   */
   public Future<RowSet<Row>> run(SqlClient client, Buildable statement) {
     RenderedStatement rendered;
     try {
@@ -60,7 +88,13 @@ public final class SqlDatabase {
     return client.preparedQuery(rendered.text()).execute(Tuple.from(rendered.params()));
   }
 
-  /** Runs a function in a transaction, which commits when its future succeeds and rolls back when it fails. */
+  /**
+   * Runs a function in a transaction, which commits when its future succeeds and rolls back when it fails.
+   *
+   * @param function takes the connection of the transaction, to run each statement on
+   * @param <T> the type of the result
+   * @return the result of the function, after the commit
+   */
   public <T> Future<T> transaction(Function<SqlClient, Future<T>> function) {
     return pool.withTransaction(function::apply);
   }

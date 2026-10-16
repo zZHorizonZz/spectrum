@@ -4,6 +4,9 @@ import com.google.protobuf.Value;
 import dev.cel.common.types.CelType;
 import dev.cel.common.types.SimpleType;
 
+/**
+ * The {@code bool} parameter type: a JSON boolean.
+ */
 public final class BoolParameterType extends JsonParameterType {
 
   @Override

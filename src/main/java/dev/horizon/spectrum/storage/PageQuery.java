@@ -37,16 +37,29 @@ public final class PageQuery {
     }
   }
 
+  /**
+   * Gives the most items of the page.
+   *
+   * @return the page size of the request, or {@link #DEFAULT_SIZE} if it had none
+   */
   public int size() {
     return size;
   }
 
-  /** Gives where the page starts, such as the ULID of its first tuple, or none for the first page. */
+  /**
+   * Gives where the page starts.
+   *
+   * @return the cursor of the token, such as the ULID of the first tuple of the page, or none for the first page
+   */
   public List<String> cursor() {
     return cursor;
   }
 
-  /** Gives the first text of the cursor, or empty for the first page. */
+  /**
+   * Gives the first text of the cursor, for a list whose cursor is one value.
+   *
+   * @return the text, or empty for the first page
+   */
   public String from() {
     return cursor.isEmpty() ? "" : cursor.getFirst();
   }
@@ -56,6 +69,8 @@ public final class PageQuery {
    *
    * @param items the items of the page
    * @param next where the next page starts, or none if this page is the last
+   * @param <T> the type of the items
+   * @return the page, whose next token is empty if this page is the last
    */
   public <T> Page<T> page(List<T> items, List<String> next) {
     return new Page<>(items, next.isEmpty() ? "" : codec.encode(new PageToken(next, fingerprint)), 0);

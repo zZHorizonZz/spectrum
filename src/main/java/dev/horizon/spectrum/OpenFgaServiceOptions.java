@@ -58,48 +58,98 @@ public record OpenFgaServiceOptions(int maxTuplesPerWrite, int maxTypesPerAuthor
         DEFAULT_LIST_DEADLINE, DEFAULT_LIST_MAX_RESULTS, DEFAULT_LIST_DEADLINE, randomKey());
   }
 
+  /**
+   * Gives the options with another limit of the tuples that one Write writes and deletes.
+   *
+   * @param value the most tuples, at least 1
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withMaxTuplesPerWrite(int value) {
     return new OpenFgaServiceOptions(value, maxTypesPerAuthorizationModel, maxAuthorizationModelSizeInBytes,
         maxConditionContextSizeInBytes, resolveNodeLimit, maxChecksPerBatchCheck, listObjectsMaxResults,
         listObjectsDeadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another limit of the type definitions of an authorization model.
+   *
+   * @param value the most type definitions, at least 1
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withMaxTypesPerAuthorizationModel(int value) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, value, maxAuthorizationModelSizeInBytes,
         maxConditionContextSizeInBytes, resolveNodeLimit, maxChecksPerBatchCheck, listObjectsMaxResults,
         listObjectsDeadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another limit of the serialized size of an authorization model.
+   *
+   * @param value the largest size in bytes, at least 1
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withMaxAuthorizationModelSizeInBytes(int value) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel, value,
         maxConditionContextSizeInBytes, resolveNodeLimit, maxChecksPerBatchCheck, listObjectsMaxResults,
         listObjectsDeadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another limit of the serialized size of the condition context of a tuple.
+   *
+   * @param value the largest size in bytes, at least 1
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withMaxConditionContextSizeInBytes(int value) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel,
         maxAuthorizationModelSizeInBytes, value, resolveNodeLimit, maxChecksPerBatchCheck, listObjectsMaxResults,
         listObjectsDeadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another depth that a Check, ListObjects or ListUsers follows usersets and tuplesets to.
+   *
+   * @param value the deepest dispatch, at least 1
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withResolveNodeLimit(int value) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel,
         maxAuthorizationModelSizeInBytes, maxConditionContextSizeInBytes, value, maxChecksPerBatchCheck,
         listObjectsMaxResults, listObjectsDeadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another limit of the checks of one BatchCheck.
+   *
+   * @param value the most checks, at least 1
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withMaxChecksPerBatchCheck(int value) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel,
         maxAuthorizationModelSizeInBytes, maxConditionContextSizeInBytes, resolveNodeLimit, value,
         listObjectsMaxResults, listObjectsDeadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another limit and deadline of ListObjects.
+   *
+   * @param maxResults the most objects that ListObjects gives, at least 1
+   * @param deadline how long ListObjects searches before it gives the objects it found, more than zero
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withListObjects(int maxResults, Duration deadline) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel,
         maxAuthorizationModelSizeInBytes, maxConditionContextSizeInBytes, resolveNodeLimit, maxChecksPerBatchCheck,
         maxResults, deadline, listUsersMaxResults, listUsersDeadline, pageTokenKey);
   }
 
+  /**
+   * Gives the options with another limit and deadline of ListUsers.
+   *
+   * @param maxResults the most users that ListUsers gives, at least 1
+   * @param deadline how long ListUsers searches before it gives the users it found, more than zero
+   * @return the options, with the other values unchanged
+   */
   public OpenFgaServiceOptions withListUsers(int maxResults, Duration deadline) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel,
         maxAuthorizationModelSizeInBytes, maxConditionContextSizeInBytes, resolveNodeLimit, maxChecksPerBatchCheck,
@@ -110,6 +160,7 @@ public record OpenFgaServiceOptions(int maxTuplesPerWrite, int maxTypesPerAuthor
    * Gives the options with another key of the continuation tokens.
    *
    * @param key the AES key of 128, 192 or 256 bits that encrypts continuation tokens
+   * @return the options, with the other values unchanged
    */
   public OpenFgaServiceOptions withPageTokenKey(SecretKey key) {
     return new OpenFgaServiceOptions(maxTuplesPerWrite, maxTypesPerAuthorizationModel,

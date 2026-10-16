@@ -13,6 +13,7 @@ public abstract class NumberParameterType extends JsonParameterType {
    *
    * @param value a number, or a string of one
    * @param type the name of this type, for the message
+   * @return the number, exactly as the value has it
    * @throws IllegalArgumentException if the value is not a number
    */
   protected BigDecimal number(Value value, String type) {
@@ -36,6 +37,7 @@ public abstract class NumberParameterType extends JsonParameterType {
    *
    * @param value a number, or a string of one
    * @param type the name of this type, for the message
+   * @return the number, which has no fraction
    * @throws IllegalArgumentException if the value is not a whole number
    */
   protected BigDecimal integer(Value value, String type) {
