@@ -46,7 +46,7 @@
 
     <openfga-language.version>0.2.1</openfga-language.version>
     <aquery.version>0.3.1-SNAPSHOT</aquery.version>
-    <basepoint.version>0.1.1-SNAPSHOT</basepoint.version>
+    <basepoint.version>0.3.0</basepoint.version>
     <cinder.version>0.1.0</cinder.version>
     <leadseal.version>0.2.0</leadseal.version>
     <vertx.version>5.2.0</vertx.version>
