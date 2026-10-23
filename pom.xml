@@ -4,7 +4,7 @@
 
   <groupId>dev.horizon</groupId>
   <artifactId>spectrum</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.2.0</version>
 
   <name>Spectrum</name>
   <description>The OpenFGA service on Vert.x and your own SQL database.</description>
@@ -54,9 +54,9 @@
     <google-common-protos.version>2.76.0</google-common-protos.version>
     <pgv.version>1.3.3</pgv.version>
     <cel.version>0.14.0</cel.version>
-    <guava.version>33.7.2-jre</guava.version>
+    <guava.version>33.6.0-jre</guava.version>
 
-    <flyway.version>13.10.3</flyway.version>
+    <flyway.version>13.10.0</flyway.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <postgresql.version>42.7.14</postgresql.version>
     <mariadb-client.version>3.5.10</mariadb-client.version>
