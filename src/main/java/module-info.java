@@ -18,4 +18,6 @@ module dev.horizon.spectrum {
 
   exports dev.horizon.spectrum;
   exports dev.horizon.spectrum.openfga.v1;
+
+  opens dev.horizon.spectrum.schema.v1 to com.google.protobuf;
 }

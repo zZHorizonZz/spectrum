@@ -20,11 +20,11 @@ import java.util.List;
  * @param rows the rows of the changes
  */
 public record ChangelogBackend(Database database, TupleRows rows)
-    implements Backend<Tables.Changelog, ChangelogBackend.Key> {
+    implements Backend<Tables.Changelog, Void> {
 
   @Override
-  public Class<Tables.Changelog> type() {
-    return Tables.Changelog.class;
+  public Tables.Changelog prototype() {
+    return Tables.Changelog.getDefaultInstance();
   }
 
   /**
@@ -47,15 +47,5 @@ public record ChangelogBackend(Database database, TupleRows rows)
     return query.list().map(found -> page.page(found.stream().map(rows::change).toList(), found.isEmpty()
         ? List.of()
         : List.of(found.getLast().getUlid(), objectType)));
-  }
-
-  /**
-   * The key of a change.
-   *
-   * @param store the ID of the store
-   * @param ulid the ULID of the change
-   * @param objectType the type of the object of the tuple that changed
-   */
-  public record Key(String store, String ulid, String objectType) {
   }
 }

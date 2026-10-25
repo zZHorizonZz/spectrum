@@ -46,13 +46,13 @@ import java.util.function.Function;
  * @param rows the rows of the tuples and the changes
  */
 public record TupleBackend(Database database, ChangelogBackend changelog, TupleRows rows)
-    implements TupleReader, Backend<Tables.Tuple, TupleBackend.Key> {
+    implements TupleReader, Backend<Tables.Tuple, Void> {
 
   private static final int TUPLES_PER_STATEMENT = 100;
 
   @Override
-  public Class<Tables.Tuple> type() {
-    return Tables.Tuple.class;
+  public Tables.Tuple prototype() {
+    return Tables.Tuple.getDefaultInstance();
   }
 
   @Override
@@ -82,7 +82,7 @@ public record TupleBackend(Database database, ChangelogBackend changelog, TupleR
 
   @Override
   public Future<Optional<Tuple>> readUserTuple(String store, TupleId tuple) {
-    return findById(new Key(store, tuple)).map(found -> found.map(rows::tuple));
+    return find(key(store, tuple)).first().map(found -> found.map(rows::tuple));
   }
 
   @Override
@@ -221,7 +221,13 @@ public record TupleBackend(Database database, ChangelogBackend changelog, TupleR
   }
 
   private Filter byKeys(String store, List<TupleId> keys) {
-    return or(keys.stream().map(key -> model().keyFilter(new Key(store, key))).toArray(Filter[]::new));
+    return or(keys.stream().map(key -> key(store, key)).toArray(Filter[]::new));
+  }
+
+  private Filter key(String store, TupleId tuple) {
+    TupleObject object = TupleObject.parse(tuple.object());
+    return and(eq("store", store), eq("object_type", object.type()), eq("object_id", object.id()),
+        eq("relation", tuple.relation()), eq("user", tuple.user()));
   }
 
   private Future<List<Tuple>> tuples(Query<Tables.Tuple> query) {
@@ -242,25 +248,5 @@ public record TupleBackend(Database database, ChangelogBackend changelog, TupleR
    * fail
    */
   public record WriteOptions(boolean ignoreMissingDeletes, boolean ignoreDuplicateWrites) {
-  }
-
-  /**
-   * The key of a tuple.
-   *
-   * @param store the ID of the store
-   * @param objectType the type of the object
-   * @param objectId the ID of the object
-   * @param relation the relation
-   * @param user the user
-   */
-  public record Key(String store, String objectType, String objectId, String relation, String user) {
-
-    Key(String store, TupleId tuple) {
-      this(store, TupleObject.parse(tuple.object()), tuple);
-    }
-
-    private Key(String store, TupleObject object, TupleId tuple) {
-      this(store, object.type(), object.id(), tuple.relation(), tuple.user());
-    }
   }
 }

@@ -1,5 +1,6 @@
 package dev.horizon.spectrum.storage;
 
+import static dev.horizon.basepoint.Filter.and;
 import static dev.horizon.basepoint.Filter.eq;
 import static dev.horizon.basepoint.Filter.lte;
 
@@ -23,11 +24,11 @@ import java.util.Optional;
  * @param database the database of the {@code authorization_model} table
  */
 public record AuthorizationModelBackend(Database database)
-    implements Backend<Tables.AuthorizationModel, AuthorizationModelBackend.Key> {
+    implements Backend<Tables.AuthorizationModel, Void> {
 
   @Override
-  public Class<Tables.AuthorizationModel> type() {
-    return Tables.AuthorizationModel.class;
+  public Tables.AuthorizationModel prototype() {
+    return Tables.AuthorizationModel.getDefaultInstance();
   }
 
   /**
@@ -51,7 +52,7 @@ public record AuthorizationModelBackend(Database database)
    * @return the model, or empty if the store has no model with the ID
    */
   public Future<Optional<AuthorizationModel>> read(String store, String id) {
-    return findById(new Key(store, id)).map(found -> found.map(this::model));
+    return find(and(eq("store", store), eq("authorization_model_id", id))).first().map(found -> found.map(this::model));
   }
 
   /**
@@ -94,14 +95,5 @@ public record AuthorizationModelBackend(Database database)
       throw new OpenFgaException(InternalErrorCode.internal_error, "a stored model is corrupt: "
           + corrupt.getMessage());
     }
-  }
-
-  /**
-   * The key of a model, and of its assertions.
-   *
-   * @param store the ID of the store
-   * @param authorizationModelId the ID of the model
-   */
-  public record Key(String store, String authorizationModelId) {
   }
 }

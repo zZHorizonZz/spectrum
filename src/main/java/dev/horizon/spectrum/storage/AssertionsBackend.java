@@ -1,5 +1,8 @@
 package dev.horizon.spectrum.storage;
 
+import static dev.horizon.basepoint.Filter.and;
+import static dev.horizon.basepoint.Filter.eq;
+
 import com.google.protobuf.InvalidProtocolBufferException;
 import dev.horizon.cinder.Backend;
 import dev.horizon.cinder.Conflict;
@@ -19,11 +22,11 @@ import java.util.List;
  * @param database the database of the {@code assertion} table
  */
 public record AssertionsBackend(Database database)
-    implements Backend<Tables.Assertion, AuthorizationModelBackend.Key> {
+    implements Backend<Tables.Assertion, Void> {
 
   @Override
-  public Class<Tables.Assertion> type() {
-    return Tables.Assertion.class;
+  public Tables.Assertion prototype() {
+    return Tables.Assertion.getDefaultInstance();
   }
 
   /**
@@ -49,7 +52,7 @@ public record AssertionsBackend(Database database)
    * @return the assertions, in the order they were written, or none if the model has none
    */
   public Future<List<Assertion>> read(String store, String modelId) {
-    return findById(new AuthorizationModelBackend.Key(store, modelId)).map(found -> found.map(row -> {
+    return find(and(eq("store", store), eq("authorization_model_id", modelId))).first().map(found -> found.map(row -> {
       try {
         return Assertions.parseFrom(row.getAssertions()).getAssertionsList();
       } catch (InvalidProtocolBufferException corrupt) {

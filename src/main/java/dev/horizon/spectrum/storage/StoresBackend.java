@@ -32,8 +32,8 @@ import java.util.Optional;
 public record StoresBackend(Database database, Clock clock) implements Backend<Tables.Store, String> {
 
   @Override
-  public Class<Tables.Store> type() {
-    return Tables.Store.class;
+  public Tables.Store prototype() {
+    return Tables.Store.getDefaultInstance();
   }
 
   /**
