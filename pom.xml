@@ -45,9 +45,9 @@
     <spectrum.migrations>${project.basedir}/src/main/resources/spectrum/migration</spectrum.migrations>
 
     <openfga-language.version>0.2.1</openfga-language.version>
-    <aquery.version>0.3.1-SNAPSHOT</aquery.version>
-    <basepoint.version>0.3.0</basepoint.version>
-    <cinder.version>0.4.0</cinder.version>
+    <aquery.version>0.3.0</aquery.version>
+    <basepoint.version>0.3.1</basepoint.version>
+    <cinder.version>0.4.1</cinder.version>
     <leadseal.version>0.2.0</leadseal.version>
     <vertx.version>5.2.0</vertx.version>
     <protobuf.version>4.36.2</protobuf.version>
