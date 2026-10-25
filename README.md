@@ -50,7 +50,7 @@ Java 25 and Vert.x 5. It is the Java module `dev.horizon.spectrum`.
 <dependency>
   <groupId>dev.horizon</groupId>
   <artifactId>spectrum</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
