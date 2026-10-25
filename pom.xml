@@ -4,7 +4,7 @@
 
   <groupId>dev.horizon</groupId>
   <artifactId>spectrum</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2-SNAPSHOT</version>
 
   <name>Spectrum</name>
   <description>The OpenFGA service on Vert.x and your own SQL database.</description>
