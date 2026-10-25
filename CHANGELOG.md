@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/zZHorizonZz/spectrum/compare/v0.2.0...v0.2.1) (2026-10-25)
+
+
+### Fixes
+
+* depend on aquery 0.3.0, basepoint 0.3.1 and cinder 0.4.1, none of which needs a snapshot. ([b203c09](https://github.com/zZHorizonZz/spectrum/commit/b203c0971f45a25e499c5e57d327aa5cd73a62b5))
+* run on cinder 0.4.0, and open the table messages to protobuf, whose field accessors read them reflectively. ([4023615](https://github.com/zZHorizonZz/spectrum/commit/402361541a89971a66e1bb029c5a3b7c78f3afaa))
+
 ## [0.2.0](https://github.com/zZHorizonZz/spectrum/compare/v0.1.0...v0.2.0) (2026-10-23)
 
 

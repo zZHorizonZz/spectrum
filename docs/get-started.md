@@ -18,7 +18,7 @@ Add Spectrum, the Cinder driver and Vert.x client of your database, and the Vert
 <dependency>
   <groupId>dev.horizon</groupId>
   <artifactId>spectrum</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 <!-- x-release-please-end -->
