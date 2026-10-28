@@ -56,7 +56,7 @@
     <cel.version>0.14.0</cel.version>
     <guava.version>33.6.0-jre</guava.version>
 
-    <flyway.version>13.10.0</flyway.version>
+    <flyway.version>13.11.1</flyway.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <postgresql.version>42.7.14</postgresql.version>
     <mariadb-client.version>3.5.10</mariadb-client.version>
