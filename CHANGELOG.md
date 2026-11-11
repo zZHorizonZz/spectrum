@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/zZHorizonZz/spectrum/compare/v0.2.1...v0.3.0) (2026-11-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* the migration replaces the first one, so a database made with an earlier version of Spectrum needs its tables made again.
+
+### Features
+
+* run on cinder 0.6.0 and leadseal 0.3.1, and let the database keep the changelog, the store times and the tuples. ([#23](https://github.com/zZHorizonZz/spectrum/issues/23)) ([1e8c700](https://github.com/zZHorizonZz/spectrum/commit/1e8c700eab7961674ba0f973147f42f4928e0c7d))
+
 ## [0.2.1](https://github.com/zZHorizonZz/spectrum/compare/v0.2.0...v0.2.1) (2026-10-25)
 
 
