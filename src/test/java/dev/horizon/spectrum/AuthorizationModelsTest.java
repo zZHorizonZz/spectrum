@@ -1,17 +1,21 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.basepoint.filter.Filter.eq;
 import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import dev.horizon.cinder.Table;
 import dev.horizon.spectrum.openfga.v1.AuthorizationModel;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
 import dev.horizon.spectrum.openfga.v1.ReadAuthorizationModelRequest;
 import dev.horizon.spectrum.openfga.v1.ReadAuthorizationModelsRequest;
 import dev.horizon.spectrum.openfga.v1.ReadAuthorizationModelsResponse;
 import dev.horizon.spectrum.openfga.v1.WriteAuthorizationModelRequest;
+import dev.horizon.spectrum.schema.v1.Tables;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,14 @@ class AuthorizationModelsTest {
     WriteAuthorizationModelRequest.Builder request = WriteAuthorizationModelRequest.newBuilder();
     JsonFormat.parser().merge(json, request);
     return request.setStoreId(store.id()).build();
+  }
+
+  @Test
+  void refusesAnUpdateOfAModel() throws TimeoutException {
+    store.writeModel(Documents.MODEL);
+    Table<Tables.AuthorizationModel> models = spectrum.table(Tables.AuthorizationModel.getDefaultInstance());
+    assertThatThrownBy(() -> models.execute(models.update().set("schema_version", "1.2").where(eq("store", store
+        .id()))).await(TIMEOUT)).hasMessageContaining("An authorization model never changes.");
   }
 
   @Test

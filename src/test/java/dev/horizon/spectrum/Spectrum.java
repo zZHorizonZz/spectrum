@@ -7,6 +7,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Struct;
 import com.google.protobuf.util.JsonFormat;
+import dev.horizon.cinder.Database;
+import dev.horizon.cinder.Table;
+import dev.horizon.cinder.protobuf.ProtobufExtension;
 import dev.horizon.spectrum.database.RunningDatabase;
 import dev.horizon.spectrum.openfga.v1.CreateStoreRequest;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
@@ -26,12 +29,14 @@ import java.util.function.Supplier;
 final class Spectrum implements AutoCloseable {
 
   private final RunningDatabase database;
+  private final Database tables;
   private EventBusGrpcServer server;
   private EventBusGrpcClient client;
   private OpenFGAServiceGrpcClient fga;
 
   Spectrum(RunningDatabase database) throws TimeoutException {
     this.database = database;
+    this.tables = Database.builder(database.pool(), database.driver()).extension(new ProtobufExtension()).build();
     database.empty();
     serve(new OpenFgaServiceOptions());
   }
@@ -51,6 +56,10 @@ final class Spectrum implements AutoCloseable {
 
   Vertx vertx() {
     return database.vertx();
+  }
+
+  <E> Table<E> table(E prototype) {
+    return tables.table(prototype);
   }
 
   TestStore store() throws TimeoutException {

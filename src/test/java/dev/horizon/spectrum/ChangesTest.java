@@ -1,10 +1,12 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.basepoint.filter.Filter.eq;
 import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Timestamp;
+import dev.horizon.cinder.Table;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
 import dev.horizon.spectrum.openfga.v1.ReadChangesRequest;
 import dev.horizon.spectrum.openfga.v1.ReadChangesResponse;
@@ -13,6 +15,7 @@ import dev.horizon.spectrum.openfga.v1.TupleKeyWithoutCondition;
 import dev.horizon.spectrum.openfga.v1.TupleOperation;
 import dev.horizon.spectrum.openfga.v1.WriteRequest;
 import dev.horizon.spectrum.openfga.v1.WriteRequestDeletes;
+import dev.horizon.spectrum.schema.v1.Tables;
 import io.vertx.grpc.common.GrpcStatus;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -62,6 +65,14 @@ class ChangesTest {
         "TUPLE_OPERATION_WRITE folder:1#viewer@user:anne", "TUPLE_OPERATION_DELETE doc:1#viewer@user:anne");
     assertThat(changes("", next.getContinuationToken()).getContinuationToken())
         .isEqualTo(next.getContinuationToken());
+  }
+
+  @Test
+  void recordsADeleteOfAnotherWriter() throws TimeoutException {
+    Table<Tables.Tuple> tuples = spectrum.table(Tables.Tuple.getDefaultInstance());
+    tuples.execute(tuples.delete().where(eq("store", store.id()))).await(TIMEOUT);
+    assertThat(changes("folder", "").getChangesList()).extracting(this::text).containsExactly(
+        "TUPLE_OPERATION_WRITE folder:1#viewer@user:anne", "TUPLE_OPERATION_DELETE folder:1#viewer@user:anne");
   }
 
   @Test

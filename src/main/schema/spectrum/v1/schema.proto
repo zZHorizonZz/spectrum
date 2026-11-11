@@ -30,14 +30,26 @@ message Store {
 
   google.protobuf.Timestamp created_at = 3 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
 
-  google.protobuf.Timestamp updated_at = 4;
+  // The time of the last change of the store, which the database writes on each update.
+  google.protobuf.Timestamp updated_at = 4 [(leadseal.v1.column) = {
+    nullable: false
+    timestamp: { default_now: true }
+    rewrite: "now()"
+  }];
 
   google.protobuf.Timestamp deleted_at = 5;
 }
 
-// An authorization model of a store. Models never change after they are written.
+// An authorization model of a store. Models never change after they are written, and the database refuses an update.
 message AuthorizationModel {
-  option (leadseal.v1.table) = { name: "spectrum_authorization_model" };
+  option (leadseal.v1.table) = {
+    name: "spectrum_authorization_model"
+    trigger: {
+      name: "refuse_update"
+      on: [EVENT_UPDATE]
+      actions: [{ assert: { expression: "false" message: "An authorization model never changes." } }]
+    }
+  };
 
   string store = 1 [(leadseal.v1.column) = {
     primary_key: true
@@ -70,16 +82,60 @@ message AuthorizationModel {
   bytes serialized_protobuf = 4;
 }
 
-// A relationship tuple of a store.
+// A relationship tuple of a store. The database records each write and delete of a tuple in the changelog, in the
+// transaction of the change, and refuses an update: a tuple changes by a delete and a write.
 message Tuple {
   option (leadseal.v1.table) = {
     name: "spectrum_tuple"
-    index: { name: "ux_spectrum_tuple_ulid" fields: ["ulid"] unique: true }
+    index: { name: "ux_spectrum_tuple_key" fields: ["store", "object_type", "object_id", "relation", "user"] unique: true }
     index: { name: "ix_spectrum_tuple_user_lookup" fields: ["store", "user", "relation", "object_type", "object_id"] }
+    trigger: {
+      name: "record_write"
+      on: [EVENT_INSERT]
+      actions: [{
+        insert: {
+          message: "spectrum.v1.Changelog"
+          values: [
+            { key: "store" value: "store" },
+            { key: "object_type" value: "object_type" },
+            { key: "object_id" value: "object_id" },
+            { key: "relation" value: "relation" },
+            { key: "user" value: "user" },
+            { key: "condition_name" value: "condition_name" },
+            { key: "condition_context" value: "condition_context" },
+            { key: "operation" value: "0" }
+          ]
+        }
+      }]
+    }
+    trigger: {
+      name: "record_delete"
+      on: [EVENT_DELETE]
+      actions: [{
+        insert: {
+          message: "spectrum.v1.Changelog"
+          values: [
+            { key: "store" value: "store" },
+            { key: "object_type" value: "object_type" },
+            { key: "object_id" value: "object_id" },
+            { key: "relation" value: "relation" },
+            { key: "user" value: "user" },
+            { key: "operation" value: "1" }
+          ]
+        }
+      }]
+    }
+    trigger: {
+      name: "refuse_update"
+      on: [EVENT_UPDATE]
+      actions: [{ assert: { expression: "false" message: "A tuple never changes: delete it and write it again." } }]
+    }
   };
 
+  // The tuple ID, which the database gives each tuple in the order it writes them. Read pages by ID.
+  int64 id = 9 [(leadseal.v1.column) = { primary_key: true integer: { identity: true } }];
+
   string store = 1 [(leadseal.v1.column) = {
-    primary_key: true
     text: {
       length: 26
       collation: [
@@ -91,7 +147,6 @@ message Tuple {
   }];
 
   string object_type = 2 [(leadseal.v1.column) = {
-    primary_key: true
     text: {
       length: 128
       collation: [
@@ -103,7 +158,6 @@ message Tuple {
   }];
 
   string object_id = 3 [(leadseal.v1.column) = {
-    primary_key: true
     text: {
       length: 255
       collation: [
@@ -115,7 +169,6 @@ message Tuple {
   }];
 
   string relation = 4 [(leadseal.v1.column) = {
-    primary_key: true
     text: {
       length: 50
       collation: [
@@ -129,7 +182,6 @@ message Tuple {
   // The user: an object such as `user:anne`, a typed wildcard such as `user:*`, or a userset such as
   // `group:eng#member`.
   string user = 5 [(leadseal.v1.column) = {
-    primary_key: true
     name: "_user"
     text: {
       length: 256
@@ -149,8 +201,21 @@ message Tuple {
   // The condition context, as a serialized `google.protobuf.Struct`.
   optional bytes condition_context = 8;
 
-  // The tuple ID, a ULID of the time of the write.
-  string ulid = 9 [(leadseal.v1.column).text = {
+  google.protobuf.Timestamp inserted_at = 10 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
+}
+
+// A write or a delete of a tuple of a store, which the triggers of the tuple table record in the transaction of the
+// change.
+message Changelog {
+  option (leadseal.v1.table) = {
+    name: "spectrum_changelog"
+    index: { name: "ix_spectrum_changelog_store" fields: ["store", "id"] }
+  };
+
+  // The change ID, which the database gives each change in the order it records them. Changes are in order of ID.
+  int64 id = 2 [(leadseal.v1.column) = { primary_key: true integer: { identity: true } }];
+
+  string store = 1 [(leadseal.v1.column).text = {
     length: 26
     collation: [
       { key: "postgresql" value: "C" },
@@ -159,48 +224,13 @@ message Tuple {
     ]
   }];
 
-  google.protobuf.Timestamp inserted_at = 10 [(leadseal.v1.column) = { nullable: false timestamp: { default_now: true } }];
-}
-
-// A write or a delete of a tuple of a store, in the transaction of the change.
-message Changelog {
-  option (leadseal.v1.table) = { name: "spectrum_changelog" };
-
-  string store = 1 [(leadseal.v1.column) = {
-    primary_key: true
-    text: {
-      length: 26
-      collation: [
-        { key: "postgresql" value: "C" },
-        { key: "mariadb" value: "utf8mb4_bin" },
-        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
-      ]
-    }
-  }];
-
-  // The change ID, a ULID of the time of the change. Changes are in order of ID.
-  string ulid = 2 [(leadseal.v1.column) = {
-    primary_key: true
-    text: {
-      length: 26
-      collation: [
-        { key: "postgresql" value: "C" },
-        { key: "mariadb" value: "utf8mb4_bin" },
-        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
-      ]
-    }
-  }];
-
-  string object_type = 3 [(leadseal.v1.column) = {
-    primary_key: true
-    text: {
-      length: 256
-      collation: [
-        { key: "postgresql" value: "C" },
-        { key: "mariadb" value: "utf8mb4_bin" },
-        { key: "sqlserver" value: "Latin1_General_100_BIN2" }
-      ]
-    }
+  string object_type = 3 [(leadseal.v1.column).text = {
+    length: 256
+    collation: [
+      { key: "postgresql" value: "C" },
+      { key: "mariadb" value: "utf8mb4_bin" },
+      { key: "sqlserver" value: "Latin1_General_100_BIN2" }
+    ]
   }];
 
   string object_id = 4 [(leadseal.v1.column).text = { length: 256 }];

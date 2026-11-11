@@ -1,14 +1,15 @@
 package dev.horizon.spectrum.storage;
 
-import static dev.horizon.basepoint.Filter.and;
-import static dev.horizon.basepoint.Filter.eq;
-import static dev.horizon.basepoint.Filter.lte;
+import static dev.horizon.basepoint.filter.Filter.and;
+import static dev.horizon.basepoint.filter.Filter.eq;
+import static dev.horizon.basepoint.filter.Filter.lte;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import dev.horizon.aquery.aip158.Page;
+import dev.horizon.basepoint.Direction;
+import dev.horizon.basepoint.Query;
 import dev.horizon.cinder.Backend;
 import dev.horizon.cinder.Database;
-import dev.horizon.cinder.Query;
 import dev.horizon.spectrum.OpenFgaException;
 import dev.horizon.spectrum.openfga.v1.AuthorizationModel;
 import dev.horizon.spectrum.openfga.v1.InternalErrorCode;
@@ -39,9 +40,9 @@ public record AuthorizationModelBackend(Database database)
    * @return a future that completes when the model is stored, or fails if the store has a model with the same ID
    */
   public Future<Void> write(String store, AuthorizationModel model) {
-    return insert().values(Tables.AuthorizationModel.newBuilder().setStore(store)
+    return table().execute(List.of(Tables.AuthorizationModel.newBuilder().setStore(store)
         .setAuthorizationModelId(model.getId()).setSchemaVersion(model.getSchemaVersion())
-        .setSerializedProtobuf(model.toByteString()).build()).execute().mapEmpty();
+        .setSerializedProtobuf(model.toByteString()).build()), null).mapEmpty();
   }
 
   /**
@@ -52,7 +53,8 @@ public record AuthorizationModelBackend(Database database)
    * @return the model, or empty if the store has no model with the ID
    */
   public Future<Optional<AuthorizationModel>> read(String store, String id) {
-    return find(and(eq("store", store), eq("authorization_model_id", id))).first().map(found -> found.map(this::model));
+    return first(query().where(and(eq("store", store), eq("authorization_model_id", id)))).map(found -> found.map(
+        this::model));
   }
 
   /**
@@ -63,11 +65,11 @@ public record AuthorizationModelBackend(Database database)
    * @return the models of the page, with the token of the next page
    */
   public Future<Page<AuthorizationModel>> readPage(String store, PageQuery page) {
-    Query<Tables.AuthorizationModel> query = latestFirst(store).limit(page.size() + 1L);
+    Query query = latestFirst(store).limit(page.size() + 1L);
     if (!page.from().isEmpty()) {
       query = query.where(lte("authorization_model_id", page.from()));
     }
-    return query.list().map(rows -> {
+    return list(query).map(rows -> {
       List<AuthorizationModel> models = rows.stream().map(this::model).toList();
       return models.size() > page.size() ? page.page(models.subList(0, page.size()), List.of(models.get(page
           .size()).getId())) : page.page(models, List.of());
@@ -81,11 +83,11 @@ public record AuthorizationModelBackend(Database database)
    * @return the model, or empty if the store has none
    */
   public Future<Optional<AuthorizationModel>> findLatest(String store) {
-    return latestFirst(store).first().map(found -> found.map(this::model));
+    return first(latestFirst(store)).map(found -> found.map(this::model));
   }
 
-  private Query<Tables.AuthorizationModel> latestFirst(String store) {
-    return find(eq("store", store)).orderBy("authorization_model_id desc");
+  private Query latestFirst(String store) {
+    return query().where(eq("store", store)).orderBy("authorization_model_id", Direction.DESC);
   }
 
   private AuthorizationModel model(Tables.AuthorizationModel row) {

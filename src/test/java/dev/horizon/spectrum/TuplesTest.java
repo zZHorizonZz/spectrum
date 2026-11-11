@@ -1,9 +1,12 @@
 package dev.horizon.spectrum;
 
+import static dev.horizon.basepoint.filter.Filter.eq;
 import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.Int32Value;
+import dev.horizon.cinder.Table;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
 import dev.horizon.spectrum.openfga.v1.ReadRequest;
 import dev.horizon.spectrum.openfga.v1.ReadRequestTupleKey;
@@ -13,6 +16,7 @@ import dev.horizon.spectrum.openfga.v1.TupleKeyWithoutCondition;
 import dev.horizon.spectrum.openfga.v1.WriteRequest;
 import dev.horizon.spectrum.openfga.v1.WriteRequestDeletes;
 import dev.horizon.spectrum.openfga.v1.WriteRequestWrites;
+import dev.horizon.spectrum.schema.v1.Tables;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +102,15 @@ class TuplesTest {
     store.write("doc:1#viewer@user:anne", "doc:1#owner@user:anne", "doc:1#viewer@group:eng#member",
         "doc:2#viewer@user:beth", "folder:1#viewer@user:anne");
     assertThat(read(object, relation, user)).containsExactly(tuples.split(" "));
+  }
+
+  @Test
+  void refusesAnUpdateOfATuple() throws TimeoutException {
+    store.write("doc:1#viewer@user:anne");
+    Table<Tables.Tuple> tuples = spectrum.table(Tables.Tuple.getDefaultInstance());
+    assertThatThrownBy(() -> tuples.execute(tuples.update().set("relation", "owner").where(eq("store", store.id())))
+        .await(TIMEOUT)).hasMessageContaining("A tuple never changes: delete it and write it again.");
+    assertThat(read("doc:1", "", "")).containsExactly("doc:1#viewer@user:anne");
   }
 
   @Test
