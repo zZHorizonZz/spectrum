@@ -1,7 +1,6 @@
 package dev.horizon.spectrum.common;
 
 import java.security.SecureRandom;
-import java.time.Instant;
 
 /**
  * An immutable universally unique lexicographically sortable identifier: 48 bits of time in milliseconds and 80 random
@@ -51,16 +50,6 @@ public final class ULID implements Comparable<ULID> {
       throw new IllegalStateException("more ULIDs in one millisecond than 80 bits can count");
     }
     return last;
-  }
-
-  /**
-   * Gives the least ULID of a time, which sorts before every ULID made at or after it.
-   *
-   * @param instant the time, to the millisecond
-   * @return the ULID, whose random bits are all zero
-   */
-  public static ULID startOf(Instant instant) {
-    return new ULID(instant.toEpochMilli() << RANDOM_HIGH_BITS, 0);
   }
 
   /**

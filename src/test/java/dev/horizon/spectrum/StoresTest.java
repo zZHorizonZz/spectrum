@@ -4,6 +4,7 @@ import static dev.horizon.spectrum.database.RunningDatabase.TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Int32Value;
+import com.google.protobuf.util.Timestamps;
 import dev.horizon.spectrum.openfga.v1.CreateStoreRequest;
 import dev.horizon.spectrum.openfga.v1.CreateStoreResponse;
 import dev.horizon.spectrum.openfga.v1.DeleteStoreRequest;
@@ -14,6 +15,7 @@ import dev.horizon.spectrum.openfga.v1.ListStoresResponse;
 import dev.horizon.spectrum.openfga.v1.OpenFGAServiceGrpcClient;
 import dev.horizon.spectrum.openfga.v1.Store;
 import dev.horizon.spectrum.openfga.v1.UpdateStoreRequest;
+import dev.horizon.spectrum.openfga.v1.UpdateStoreResponse;
 import io.vertx.grpc.common.GrpcStatus;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +83,16 @@ class StoresTest {
     String id = create("documents").getId();
     fga.updateStore(UpdateStoreRequest.newBuilder().setStoreId(id).setName("records").build()).await(TIMEOUT);
     assertThat(get(id).getName()).isEqualTo("records");
+  }
+
+  @Test
+  void movesTheUpdateTimeOfARenamedStore() throws TimeoutException {
+    CreateStoreResponse created = create("documents");
+    spectrum.vertx().timer(10).await(TIMEOUT);
+    UpdateStoreResponse renamed = fga.updateStore(UpdateStoreRequest.newBuilder().setStoreId(created.getId())
+        .setName("records").build()).await(TIMEOUT);
+    assertThat(Timestamps.compare(renamed.getUpdatedAt(), created.getUpdatedAt())).isPositive();
+    assertThat(renamed.getCreatedAt()).isEqualTo(created.getCreatedAt());
   }
 
   @Test

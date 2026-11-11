@@ -1,35 +1,30 @@
 package dev.horizon.spectrum.storage;
 
-import static dev.horizon.basepoint.Filter.and;
-import static dev.horizon.basepoint.Filter.eq;
-import static dev.horizon.basepoint.Filter.gte;
-import static dev.horizon.basepoint.Filter.in;
-import static dev.horizon.basepoint.Filter.isNull;
+import static dev.horizon.basepoint.expression.Expression.now;
+import static dev.horizon.basepoint.filter.Filter.and;
+import static dev.horizon.basepoint.filter.Filter.eq;
+import static dev.horizon.basepoint.filter.Filter.gte;
+import static dev.horizon.basepoint.filter.Filter.in;
+import static dev.horizon.basepoint.filter.Filter.isNull;
 
-import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Timestamps;
 import dev.horizon.aquery.aip158.Page;
-import dev.horizon.cinder.Assignments;
+import dev.horizon.basepoint.Query;
 import dev.horizon.cinder.Backend;
 import dev.horizon.cinder.Database;
-import dev.horizon.cinder.Query;
 import dev.horizon.spectrum.openfga.v1.Store;
 import dev.horizon.spectrum.schema.v1.Tables;
 import io.vertx.core.Future;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Creates, reads, renames and deletes stores. A delete sets {@code deleted_at} and keeps the rows of the store, and
- * reads leave out the stores that have it.
+ * reads leave out the stores that have it. The database writes the times: the time of the creation as the creation and
+ * the update time, the time of each update as the update time, and the time of the delete.
  *
  * @param database the database of the {@code store} table
- * @param clock the clock of the creation, update and delete times
  */
-public record StoresBackend(Database database, Clock clock) implements Backend<Tables.Store, String> {
+public record StoresBackend(Database database) implements Backend<Tables.Store, String> {
 
   @Override
   public Tables.Store prototype() {
@@ -44,9 +39,7 @@ public record StoresBackend(Database database, Clock clock) implements Backend<T
    * @return the store, with the time of its creation as its creation and update times
    */
   public Future<Store> create(String id, String name) {
-    Timestamp now = now();
-    return insert(Tables.Store.newBuilder().setId(id).setName(name).setCreatedAt(now)
-        .setUpdatedAt(now).build()).map(this::store);
+    return insert(Tables.Store.newBuilder().setId(id).setName(name).build()).map(this::store);
   }
 
   /**
@@ -56,7 +49,7 @@ public record StoresBackend(Database database, Clock clock) implements Backend<T
    * @return the store, or empty if there is none with the ID or it is deleted
    */
   public Future<Optional<Store>> get(String id) {
-    return find(and(eq("id", id), isNull("deleted_at"))).first().map(found -> found.map(this::store));
+    return first(query().where(and(eq("id", id), isNull("deleted_at")))).map(found -> found.map(this::store));
   }
 
   /**
@@ -68,8 +61,7 @@ public record StoresBackend(Database database, Clock clock) implements Backend<T
    * @return the stores of the page, with the token of the next page
    */
   public Future<Page<Store>> list(List<String> ids, String name, PageQuery page) {
-    Query<Tables.Store> query = find(isNull("deleted_at")).orderBy("id")
-        .limit(page.size() + 1L);
+    Query query = query().where(isNull("deleted_at")).orderBy("id").limit(page.size() + 1L);
     if (!ids.isEmpty()) {
       query = query.where(in("id", ids));
     }
@@ -79,7 +71,7 @@ public record StoresBackend(Database database, Clock clock) implements Backend<T
     if (!page.from().isEmpty()) {
       query = query.where(gte("id", page.from()));
     }
-    return query.list().map(rows -> {
+    return list(query).map(rows -> {
       List<Store> stores = rows.stream().map(this::store).toList();
       return stores.size() > page.size() ? page.page(stores.subList(0, page.size()), List.of(stores.get(page
           .size()).getId())) : page.page(stores, List.of());
@@ -87,15 +79,15 @@ public record StoresBackend(Database database, Clock clock) implements Backend<T
   }
 
   /**
-   * Renames a store, and sets its update time to now.
+   * Renames a store. The database sets its update time to now.
    *
    * @param id the ID of the store
    * @param name the new name
    * @return the renamed store, or empty if there is none with the ID or it is deleted
    */
   public Future<Optional<Store>> update(String id, String name) {
-    return update().where(and(eq("id", id), isNull("deleted_at"))).set(Assignments.none().set("name", name)
-        .set("updated_at", now())).returning().map(rows -> rows.stream().findFirst().map(this::store));
+    return returning(update().set("name", name).where(and(eq("id", id), isNull("deleted_at"))))
+        .map(rows -> rows.stream().findFirst().map(this::store));
   }
 
   /**
@@ -105,12 +97,7 @@ public record StoresBackend(Database database, Clock clock) implements Backend<T
    * @return a future that completes when the store is deleted, also if there is none with the ID
    */
   public Future<Void> delete(String id) {
-    return update().where(eq("id", id)).set(Assignments.none().set("deleted_at", now())).execute().mapEmpty();
-  }
-
-  /** Gives the time now, to the microsecond that every database keeps. */
-  private Timestamp now() {
-    return Timestamps.fromMicros(ChronoUnit.MICROS.between(Instant.EPOCH, clock.instant()));
+    return execute(update().set("deleted_at", now()).where(eq("id", id))).mapEmpty();
   }
 
   private Store store(Tables.Store row) {

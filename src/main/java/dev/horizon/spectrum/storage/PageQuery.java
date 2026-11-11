@@ -49,7 +49,7 @@ public final class PageQuery {
   /**
    * Gives where the page starts.
    *
-   * @return the cursor of the token, such as the ULID of the first tuple of the page, or none for the first page
+   * @return the cursor of the token, such as the ID of the first tuple of the page, or none for the first page
    */
   public List<String> cursor() {
     return cursor;

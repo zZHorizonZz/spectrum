@@ -1,7 +1,7 @@
 package dev.horizon.spectrum.storage;
 
-import static dev.horizon.basepoint.Filter.and;
-import static dev.horizon.basepoint.Filter.eq;
+import static dev.horizon.basepoint.filter.Filter.and;
+import static dev.horizon.basepoint.filter.Filter.eq;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import dev.horizon.cinder.Backend;
@@ -38,10 +38,9 @@ public record AssertionsBackend(Database database)
    * @return a future that completes when the assertions are stored
    */
   public Future<Void> write(String store, String modelId, List<Assertion> assertions) {
-    return insert().values(Tables.Assertion.newBuilder().setStore(store)
-        .setAuthorizationModelId(modelId).setAssertions(Assertions.newBuilder().addAllAssertions(assertions).build()
-            .toByteString())
-        .build()).onConflict(Conflict.merge()).execute().mapEmpty();
+    return table().execute(List.of(Tables.Assertion.newBuilder().setStore(store).setAuthorizationModelId(modelId)
+        .setAssertions(Assertions.newBuilder().addAllAssertions(assertions).build().toByteString()).build()),
+        Conflict.merge()).mapEmpty();
   }
 
   /**
@@ -52,13 +51,14 @@ public record AssertionsBackend(Database database)
    * @return the assertions, in the order they were written, or none if the model has none
    */
   public Future<List<Assertion>> read(String store, String modelId) {
-    return find(and(eq("store", store), eq("authorization_model_id", modelId))).first().map(found -> found.map(row -> {
-      try {
-        return Assertions.parseFrom(row.getAssertions()).getAssertionsList();
-      } catch (InvalidProtocolBufferException corrupt) {
-        throw new OpenFgaException(InternalErrorCode.internal_error, "stored assertions are corrupt: "
-            + corrupt.getMessage());
-      }
-    }).orElse(List.of()));
+    return first(query().where(and(eq("store", store), eq("authorization_model_id", modelId)))).map(found -> found
+        .map(row -> {
+          try {
+            return Assertions.parseFrom(row.getAssertions()).getAssertionsList();
+          } catch (InvalidProtocolBufferException corrupt) {
+            throw new OpenFgaException(InternalErrorCode.internal_error, "stored assertions are corrupt: "
+                + corrupt.getMessage());
+          }
+        }).orElse(List.of()));
   }
 }

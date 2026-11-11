@@ -1,8 +1,8 @@
 {
-  "version" : "20261015115103",
+  "version" : "20261111115453",
   "name" : "create_spectrum_store_and_4_more",
-  "to" : "805517fa4fb97c74",
-  "created" : "2026-10-15T11:51:03.557288500Z",
+  "to" : "1471871f5e37910f",
+  "created" : "2026-11-11T11:54:53.737963700Z",
   "changes" : [ {
     "change" : "create_table",
     "definition" : {
@@ -59,7 +59,15 @@
         "name" : "updated_at",
         "type" : {
           "kind" : "timestamp"
-        }
+        },
+        "attributes" : [ {
+          "kind" : "not_null"
+        }, {
+          "kind" : "default_now"
+        }, {
+          "kind" : "comment",
+          "text" : "The time of the last change of the store, which the database writes on each update."
+        } ]
       }, {
         "id" : "5",
         "name" : "deleted_at",
@@ -157,7 +165,7 @@
         "columns" : [ "store", "authorization_model_id" ]
       }, {
         "kind" : "comment",
-        "text" : "An authorization model of a store. Models never change after they are written."
+        "text" : "An authorization model of a store. Models never change after they are written, and the database refuses an update."
       } ]
     }
   }, {
@@ -166,6 +174,21 @@
       "id" : "spectrum.Tuple",
       "name" : "spectrum_tuple",
       "columns" : [ {
+        "id" : "9",
+        "name" : "id",
+        "type" : {
+          "kind" : "integer",
+          "size" : "INT64"
+        },
+        "attributes" : [ {
+          "kind" : "not_null"
+        }, {
+          "kind" : "identity"
+        }, {
+          "kind" : "comment",
+          "text" : "The tuple ID, which the database gives each tuple in the order it writes them. Read pages by ID."
+        } ]
+      }, {
         "id" : "1",
         "name" : "store",
         "type" : {
@@ -309,31 +332,6 @@
           "text" : "The condition context, as a serialized `google.protobuf.Struct`."
         } ]
       }, {
-        "id" : "9",
-        "name" : "ulid",
-        "type" : {
-          "kind" : "text",
-          "length" : 26
-        },
-        "attributes" : [ {
-          "kind" : "not_null"
-        }, {
-          "kind" : "collation",
-          "dialect" : "postgresql",
-          "name" : "C"
-        }, {
-          "kind" : "collation",
-          "dialect" : "mariadb",
-          "name" : "utf8mb4_bin"
-        }, {
-          "kind" : "collation",
-          "dialect" : "sqlserver",
-          "name" : "Latin1_General_100_BIN2"
-        }, {
-          "kind" : "comment",
-          "text" : "The tuple ID, a ULID of the time of the write."
-        } ]
-      }, {
         "id" : "10",
         "name" : "inserted_at",
         "type" : {
@@ -348,11 +346,11 @@
       "attributes" : [ {
         "kind" : "primary_key",
         "name" : "pk_spectrum_tuple",
-        "columns" : [ "store", "object_type", "object_id", "relation", "_user" ]
+        "columns" : [ "id" ]
       }, {
         "kind" : "index",
-        "name" : "ux_spectrum_tuple_ulid",
-        "columns" : [ "ulid" ],
+        "name" : "ux_spectrum_tuple_key",
+        "columns" : [ "store", "object_type", "object_id", "relation", "_user" ],
         "unique" : true
       }, {
         "kind" : "index",
@@ -361,7 +359,7 @@
         "unique" : false
       }, {
         "kind" : "comment",
-        "text" : "A relationship tuple of a store."
+        "text" : "A relationship tuple of a store. The database records each write and delete of a tuple in the changelog, in the\ntransaction of the change, and refuses an update: a tuple changes by a delete and a write."
       } ]
     }
   }, {
@@ -370,6 +368,21 @@
       "id" : "spectrum.Changelog",
       "name" : "spectrum_changelog",
       "columns" : [ {
+        "id" : "2",
+        "name" : "id",
+        "type" : {
+          "kind" : "integer",
+          "size" : "INT64"
+        },
+        "attributes" : [ {
+          "kind" : "not_null"
+        }, {
+          "kind" : "identity"
+        }, {
+          "kind" : "comment",
+          "text" : "The change ID, which the database gives each change in the order it records them. Changes are in order of ID."
+        } ]
+      }, {
         "id" : "1",
         "name" : "store",
         "type" : {
@@ -390,31 +403,6 @@
           "kind" : "collation",
           "dialect" : "sqlserver",
           "name" : "Latin1_General_100_BIN2"
-        } ]
-      }, {
-        "id" : "2",
-        "name" : "ulid",
-        "type" : {
-          "kind" : "text",
-          "length" : 26
-        },
-        "attributes" : [ {
-          "kind" : "not_null"
-        }, {
-          "kind" : "collation",
-          "dialect" : "postgresql",
-          "name" : "C"
-        }, {
-          "kind" : "collation",
-          "dialect" : "mariadb",
-          "name" : "utf8mb4_bin"
-        }, {
-          "kind" : "collation",
-          "dialect" : "sqlserver",
-          "name" : "Latin1_General_100_BIN2"
-        }, {
-          "kind" : "comment",
-          "text" : "The change ID, a ULID of the time of the change. Changes are in order of ID."
         } ]
       }, {
         "id" : "3",
@@ -513,10 +501,15 @@
       "attributes" : [ {
         "kind" : "primary_key",
         "name" : "pk_spectrum_changelog",
-        "columns" : [ "store", "ulid", "object_type" ]
+        "columns" : [ "id" ]
+      }, {
+        "kind" : "index",
+        "name" : "ix_spectrum_changelog_store",
+        "columns" : [ "store", "id" ],
+        "unique" : false
       }, {
         "kind" : "comment",
-        "text" : "A write or a delete of a tuple of a store, in the transaction of the change."
+        "text" : "A write or a delete of a tuple of a store, which the triggers of the tuple table record in the transaction of the\nchange."
       } ]
     }
   }, {
@@ -588,6 +581,219 @@
       }, {
         "kind" : "comment",
         "text" : "The assertions of an authorization model."
+      } ]
+    }
+  }, {
+    "change" : "add_table_attribute",
+    "table" : {
+      "name" : "spectrum_store"
+    },
+    "attribute" : {
+      "kind" : "triggers",
+      "rewrites" : [ {
+        "column" : "updated_at",
+        "expression" : {
+          "kind" : "call",
+          "function" : "NOW"
+        }
+      } ]
+    }
+  }, {
+    "change" : "add_table_attribute",
+    "table" : {
+      "name" : "spectrum_authorization_model"
+    },
+    "attribute" : {
+      "kind" : "triggers",
+      "triggers" : [ {
+        "name" : "refuse_update",
+        "on" : [ "update" ],
+        "when" : {
+          "kind" : "literal",
+          "type" : {
+            "kind" : "boolean"
+          },
+          "value" : "true"
+        },
+        "actions" : [ {
+          "kind" : "assert",
+          "condition" : {
+            "kind" : "literal",
+            "type" : {
+              "kind" : "boolean"
+            },
+            "value" : "false"
+          },
+          "message" : "An authorization model never changes."
+        } ]
+      } ]
+    }
+  }, {
+    "change" : "add_table_attribute",
+    "table" : {
+      "name" : "spectrum_tuple"
+    },
+    "attribute" : {
+      "kind" : "triggers",
+      "triggers" : [ {
+        "name" : "record_write",
+        "on" : [ "insert" ],
+        "when" : {
+          "kind" : "literal",
+          "type" : {
+            "kind" : "boolean"
+          },
+          "value" : "true"
+        },
+        "actions" : [ {
+          "kind" : "insert",
+          "table" : {
+            "name" : "spectrum_changelog"
+          },
+          "values" : [ {
+            "column" : "store",
+            "expression" : {
+              "kind" : "column",
+              "name" : "store",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "object_type",
+            "expression" : {
+              "kind" : "column",
+              "name" : "object_type",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "object_id",
+            "expression" : {
+              "kind" : "column",
+              "name" : "object_id",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "relation",
+            "expression" : {
+              "kind" : "column",
+              "name" : "relation",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "_user",
+            "expression" : {
+              "kind" : "column",
+              "name" : "_user",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "condition_name",
+            "expression" : {
+              "kind" : "column",
+              "name" : "condition_name",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "condition_context",
+            "expression" : {
+              "kind" : "column",
+              "name" : "condition_context",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "operation",
+            "expression" : {
+              "kind" : "literal",
+              "type" : {
+                "kind" : "integer",
+                "size" : "INT64"
+              },
+              "value" : "0"
+            }
+          } ]
+        } ]
+      }, {
+        "name" : "record_delete",
+        "on" : [ "delete" ],
+        "when" : {
+          "kind" : "literal",
+          "type" : {
+            "kind" : "boolean"
+          },
+          "value" : "true"
+        },
+        "actions" : [ {
+          "kind" : "insert",
+          "table" : {
+            "name" : "spectrum_changelog"
+          },
+          "values" : [ {
+            "column" : "store",
+            "expression" : {
+              "kind" : "column",
+              "name" : "store",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "object_type",
+            "expression" : {
+              "kind" : "column",
+              "name" : "object_type",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "object_id",
+            "expression" : {
+              "kind" : "column",
+              "name" : "object_id",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "relation",
+            "expression" : {
+              "kind" : "column",
+              "name" : "relation",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "_user",
+            "expression" : {
+              "kind" : "column",
+              "name" : "_user",
+              "row" : "CURRENT"
+            }
+          }, {
+            "column" : "operation",
+            "expression" : {
+              "kind" : "literal",
+              "type" : {
+                "kind" : "integer",
+                "size" : "INT64"
+              },
+              "value" : "1"
+            }
+          } ]
+        } ]
+      }, {
+        "name" : "refuse_update",
+        "on" : [ "update" ],
+        "when" : {
+          "kind" : "literal",
+          "type" : {
+            "kind" : "boolean"
+          },
+          "value" : "true"
+        },
+        "actions" : [ {
+          "kind" : "assert",
+          "condition" : {
+            "kind" : "literal",
+            "type" : {
+              "kind" : "boolean"
+            },
+            "value" : "false"
+          },
+          "message" : "A tuple never changes: delete it and write it again."
+        } ]
       } ]
     }
   } ]

@@ -1,8 +1,13 @@
 package dev.horizon.spectrum.storage;
 
+import static dev.horizon.basepoint.filter.Filter.and;
+import static dev.horizon.basepoint.filter.Filter.eq;
+import static dev.horizon.basepoint.filter.Filter.or;
+
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Struct;
+import dev.horizon.basepoint.filter.Filter;
 import dev.horizon.spectrum.OpenFgaException;
 import dev.horizon.spectrum.openfga.v1.InternalErrorCode;
 import dev.horizon.spectrum.openfga.v1.RelationshipCondition;
@@ -14,12 +19,15 @@ import dev.horizon.spectrum.schema.v1.Tables;
 import dev.horizon.spectrum.tuple.TupleId;
 import dev.horizon.spectrum.tuple.TupleObject;
 import dev.horizon.spectrum.tuple.TupleUser;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
- * Turns tuples and changes into the rows of the {@code tuple} and {@code changelog} tables, and back: an object splits
- * into its {@code object_type} and {@code object_id} columns, and a condition into its {@code condition_name} and
- * {@code condition_context} columns.
+ * Turns tuples into the rows of the {@code tuple} table, and the rows of the {@code tuple} and {@code changelog} tables
+ * back into tuples and changes: an object splits into its {@code object_type} and {@code object_id} columns, and a
+ * condition into its {@code condition_name} and {@code condition_context} columns. The triggers of the tuple table
+ * write the rows of the changelog.
  */
 public final class TupleRows {
 
@@ -28,14 +36,13 @@ public final class TupleRows {
    *
    * @param store the ID of the store
    * @param key the tuple, with its condition if it has one
-   * @param ulid the ULID of the tuple
-   * @return the row, without the time of the write, which the database sets
+   * @return the row, without the ID and the time of the write, which the database sets
    */
-  public Tables.Tuple tuple(String store, TupleKey key, String ulid) {
+  public Tables.Tuple tuple(String store, TupleKey key) {
     TupleObject object = TupleObject.parse(key.getObject());
     Tables.Tuple.Builder row = Tables.Tuple.newBuilder()
         .setStore(store).setObjectType(object.type()).setObjectId(object.id()).setRelation(key.getRelation())
-        .setUser(key.getUser()).setUserType(TupleUser.parse(key.getUser()).userType()).setUlid(ulid);
+        .setUser(key.getUser()).setUserType(TupleUser.parse(key.getUser()).userType());
     if (key.hasCondition()) {
       row.setConditionName(key.getCondition().getName());
       context(key.getCondition()).ifPresent(row::setConditionContext);
@@ -44,26 +51,37 @@ public final class TupleRows {
   }
 
   /**
-   * Gives the row of a change.
+   * Gives the filter of the row of a tuple.
    *
    * @param store the ID of the store
-   * @param key the tuple that changed
-   * @param condition the condition of the tuple, or empty
-   * @param operation whether the tuple was written or deleted
-   * @param ulid the ULID of the change
-   * @return the row, without the time of the change, which the database sets
+   * @param tuple the tuple
+   * @return the filter by the columns of the key of the row
    */
-  public Tables.Changelog change(String store, TupleId key, Optional<RelationshipCondition> condition,
-      TupleOperation operation, String ulid) {
-    TupleObject object = TupleObject.parse(key.object());
-    Tables.Changelog.Builder row = Tables.Changelog.newBuilder().setStore(store).setUlid(ulid).setObjectType(object.type())
-        .setObjectId(object.id()).setRelation(key.relation()).setUser(key.user())
-        .setOperation(operation.getNumber());
-    condition.ifPresent(written -> {
-      row.setConditionName(written.getName());
-      context(written).ifPresent(row::setConditionContext);
-    });
-    return row.build();
+  public Filter filter(String store, TupleId tuple) {
+    TupleObject object = TupleObject.parse(tuple.object());
+    return and(eq("store", store), eq("object_type", object.type()), eq("object_id", object.id()), eq("relation",
+        tuple.relation()), eq("user", tuple.user()));
+  }
+
+  /**
+   * Gives the filter of the rows of tuples.
+   *
+   * @param store the ID of the store
+   * @param tuples the tuples
+   * @return the filter of the rows of any of the tuples
+   */
+  public Filter filter(String store, Collection<TupleId> tuples) {
+    return or(tuples.stream().map(tuple -> filter(store, tuple)).toArray(Filter[]::new));
+  }
+
+  /**
+   * Reads rows of the {@code tuple} table.
+   *
+   * @param rows the rows
+   * @return the tuples, in the order of the rows
+   */
+  public List<Tuple> tuples(List<Tables.Tuple> rows) {
+    return rows.stream().map(this::tuple).toList();
   }
 
   /**
@@ -103,10 +121,10 @@ public final class TupleRows {
     TupleKey.Builder key = TupleKey.newBuilder().setObject(objectType + ":" + objectId).setRelation(relation)
         .setUser(user);
     if (!condition.isEmpty()) {
-      RelationshipCondition.Builder written = key.getConditionBuilder().setName(condition);
+      RelationshipCondition.Builder relationshipCondition = key.getConditionBuilder().setName(condition);
       if (!context.isEmpty()) {
         try {
-          written.setContext(Struct.parseFrom(context));
+          relationshipCondition.setContext(Struct.parseFrom(context));
         } catch (InvalidProtocolBufferException corrupt) {
           throw new OpenFgaException(InternalErrorCode.internal_error, "a stored condition context is corrupt: "
               + corrupt.getMessage());

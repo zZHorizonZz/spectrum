@@ -10,6 +10,7 @@ import dev.horizon.spectrum.openfga.v1.TupleKeyWithoutCondition;
 import dev.horizon.spectrum.openfga.v1.WriteRequest;
 import dev.horizon.spectrum.openfga.v1.WriteResponse;
 import dev.horizon.spectrum.storage.TupleBackend;
+import dev.horizon.spectrum.storage.TupleWrite;
 import dev.horizon.spectrum.tuple.InvalidTupleException;
 import dev.horizon.spectrum.tuple.RelationshipTuple;
 import dev.horizon.spectrum.tuple.TupleId;
@@ -82,8 +83,8 @@ public final class WriteHandler extends UnaryHandler<WriteRequest, WriteResponse
       throw new OpenFgaException(ErrorCode.exceeded_entity_limit, "The number of write operations exceeds the"
           + " allowed limit of " + options.maxTuplesPerWrite());
     }
-    return tuples.write(request.getStoreId(), deletes, writes, new TupleBackend.WriteOptions(ignoreMissing,
-        ignoreDuplicates)).map(WriteResponse.getDefaultInstance());
+    return tuples.write(new TupleWrite(request.getStoreId(), deletes, writes, ignoreMissing, ignoreDuplicates))
+        .map(WriteResponse.getDefaultInstance());
   }
 
   private boolean option(String name, String value) {

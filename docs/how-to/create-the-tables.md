@@ -51,7 +51,7 @@ these migrations from the protobuf messages in `spectrum/v1/schema.proto`.
    ```
 
 2. Add the files to your migration tool in the order of their names. Each name is a version, such as
-   `V20261015115103.sql`.
+   `V20261111115453.sql`.
 
 > [!CAUTION]
 > Do not edit the files. A later version of Spectrum adds migrations that expect the tables as these files create
